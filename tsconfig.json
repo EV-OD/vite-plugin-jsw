@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler", // Best for Vite and modern Node
+    "declaration": true,           // Tells TS to generate .d.ts files
+    "emitDeclarationOnly": true,   // tsup handles JS; TS only handles types
+    "outDir": "./dist",
+    "strict": true,                // Enables all strict type-checking options
+    "esModuleInterop": true,       // Ensures compatibility with CommonJS
+    "skipLibCheck": true,          // Speeds up build by skipping library types
+    "isolatedModules": true        // Required for bundlers like esbuild/tsup
+  },
+  "include": ["src"]               // Only look for code in the src folder
+}
