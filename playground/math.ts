@@ -1,5 +1,7 @@
 "use wasm";
 
+export const FLOAT64_ID = idof<Float64Array>();
+
 function multiplyInternal(a: Float64Array, b: Float64Array, target: Float64Array, n: i32): void {
   for (let row: i32 = 0; row < n; row++) {
     const rowOff = row * n;

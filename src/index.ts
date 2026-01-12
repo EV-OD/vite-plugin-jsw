@@ -11,9 +11,9 @@ export default function jswPlugin(): Plugin {
       // Check for the "use wasm" directive
     const hasUseWasmDirective = code.includes('"use wasm"') || code.includes("'use wasm'");
     const isWasmFile = id.endsWith('.jsw') || id.endsWith('.tsw') || id.endsWith('.ts');
-    console.log(hasUseWasmDirective, isWasmFile)
+    // console.log(hasUseWasmDirective, isWasmFile)
     if (!hasUseWasmDirective || !isWasmFile) {
-        console.log(`skipping non-TSW/JSW file: ${id}`);
+        // console.log(`skipping non-TSW/JSW file: ${id}`);
         return null;
     }
 

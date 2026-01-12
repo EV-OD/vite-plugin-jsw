@@ -10,12 +10,14 @@ const isProd = process.env.NODE_ENV === 'production';
 
 export async function compileAs(code: string) {
   let tmp;
-  if (isProd){
+  // if (isProd){
+  // tmp = await mkdtemp(join(tmpdir(), 'as-'));
+  // }else{
+  //   // create actual dir for testing
+  //   tmp = join(process.cwd(), 'tmp');
+  // }
   tmp = await mkdtemp(join(tmpdir(), 'as-'));
-  }else{
-    // create actual dir for testing
-    tmp = join(process.cwd(), 'tmp');
-  }
+
   const srcPath = join(tmp, 'module.ts');
   const outPath = join(tmp, 'module.wasm');
   const jsGluePath = join(tmp, 'module.js');
@@ -29,18 +31,19 @@ export async function compileAs(code: string) {
     "--outFile", "module.wasm",
     "-O3",
     "--runtime", "incremental",
-    "--bindings", "esm",      // Tells ASC to generate the modern JS glue
-    "--exportRuntime",        // Required for memory management helpers
+    "--bindings", "esm",      
+    "--exportRuntime",        
     "--noAssert",
     "--target", "release",
-    "--initialMemory", "32", 
-    // "--memoryGrowth",        
+    "--initialMemory", "64", 
+    "--enable", "simd"  ,
+    "--memoryGrowth",
+    // "--importMemory"  
   ];
 
   if (!isProd) {
     args.push("--textFile", "module.wat");
   }
-
   try {
     // Run the compiler
     await execFile(ascBin, args, { cwd: tmp, env: process.env });
@@ -49,11 +52,11 @@ export async function compileAs(code: string) {
     const wasmBuf = await readFile(outPath);
     const jsGlue = await readFile(jsGluePath, 'utf8');
 
-    if (isProd){
-      await rm(tmp, { recursive: true, force: true });
-    }else{
-      // in dev mode, keep tmp files for inspection
-    }
+    // if (isProd){
+    await rm(tmp, { recursive: true, force: true });
+    // }else{
+    //   // in dev mode, keep tmp files for inspection
+    // }
 
     return {
       wasm: new Uint8Array(wasmBuf),

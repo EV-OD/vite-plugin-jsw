@@ -1,8 +1,14 @@
 "use wasm";
 
+export const FLOAT64_ID = idof<Float64Array>();
+
 // Activation function: Sigmoid maps any value to a range between 0 and 1
 function sigmoid(x: f64): f64 {
   return 1.0 / (1.0 + Math.exp(-x));
+}
+
+export function createNN(inputSize: i32, learningRate: f64 = 0.1): SimpleNN {
+  return new SimpleNN(inputSize, learningRate);
 }
 
 class SimpleNN {

@@ -1,16 +1,14 @@
-"use wasm";
-
 // Activation function: Sigmoid maps any value to a range between 0 and 1
-function sigmoid(x: f64): f64 {
+function sigmoid(x: number): number {
   return 1.0 / (1.0 + Math.exp(-x));
 }
 
-class SimpleNN {
+export class SimpleNNJs {
   public weights: Float64Array;
-  public bias: f64;
-  public learningRate: f64;
+  public bias: number;
+  public learningRate: number;
 
-  constructor(inputSize: i32, learningRate: f64 = 0.1) {
+  constructor(inputSize, learningRate: number = 0.1) {
     this.weights = new Float64Array(inputSize);
     this.bias = 0.0;
     this.learningRate = learningRate;
@@ -24,7 +22,7 @@ class SimpleNN {
   /**
    * Predicts the class (0 or 1) for a given input array.
    */
-  predict(inputs: Float64Array): f64 {
+  predict(inputs: Float64Array): number {
     let sum = this.bias;
     for (let i = 0; i < this.weights.length; i++) {
       sum += inputs[i] * this.weights[i];
@@ -37,7 +35,7 @@ class SimpleNN {
    * @param inputs Features of the data point
    * @param target The actual label (0.0 or 1.0)
    */
-  train(inputs: Float64Array, target: f64): void {
+  train(inputs: Float64Array, target: number): void {
     const prediction = this.predict(inputs);
     
     // Calculate Error: (Actual - Predicted)
@@ -51,5 +49,3 @@ class SimpleNN {
     this.bias += this.learningRate * error;
   }
 }
-
-export { SimpleNN };
