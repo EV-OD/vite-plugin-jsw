@@ -6,11 +6,19 @@ import { execFile as _execFile } from 'child_process';
 
 const execFile = promisify(_execFile);
 
+const isProd = process.env.NODE_ENV === 'production';
+
 export async function compileAs(code: string) {
-  const tmp = await mkdtemp(join(tmpdir(), 'as-'));
+  let tmp;
+  if (isProd){
+  tmp = await mkdtemp(join(tmpdir(), 'as-'));
+  }else{
+    // create actual dir for testing
+    tmp = join(process.cwd(), 'tmp');
+  }
   const srcPath = join(tmp, 'module.ts');
   const outPath = join(tmp, 'module.wasm');
-  const jsGluePath = join(tmp, 'module.js'); // Path for the generated ESM bindings
+  const jsGluePath = join(tmp, 'module.js');
 
   await writeFile(srcPath, code, 'utf8');
 
@@ -26,8 +34,12 @@ export async function compileAs(code: string) {
     "--noAssert",
     "--target", "release",
     "--initialMemory", "32", 
-    "--memoryGrowth",        
+    // "--memoryGrowth",        
   ];
+
+  if (!isProd) {
+    args.push("--textFile", "module.wat");
+  }
 
   try {
     // Run the compiler
@@ -37,7 +49,11 @@ export async function compileAs(code: string) {
     const wasmBuf = await readFile(outPath);
     const jsGlue = await readFile(jsGluePath, 'utf8');
 
-    await rm(tmp, { recursive: true, force: true });
+    if (isProd){
+      await rm(tmp, { recursive: true, force: true });
+    }else{
+      // in dev mode, keep tmp files for inspection
+    }
 
     return {
       wasm: new Uint8Array(wasmBuf),

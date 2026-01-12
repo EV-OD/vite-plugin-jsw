@@ -7,8 +7,23 @@
 </head>
 <body>
     <h1>JSW: JS to WASM</h1>
-    <p>Check the console (F12) for the result.</p>
-    
-    <script type="module" src="/index.ts"></script>
+        <p>Compare vanilla JS matrix multiplication vs the WASM implementation below.</p>
+
+        <div style="font-family: sans-serif; margin-top: 12px;">
+            <label>Matrix size (n): <input id="matrix-size" type="number" value="64" min="2" step="2" style="width:80px"/></label>
+            <label style="margin-left:12px">Iterations: <input id="iterations" type="number" value="3" min="1" step="1" style="width:80px"/></label>
+            <button id="run-js">Run JS</button>
+            <button id="run-wasm">Run WASM (cascade)</button>
+            <button id="run-both">Run Both</button>
+        </div>
+
+        <div id="results" style="font-family: sans-serif; margin-top: 12px;">
+            <h3>Results</h3>
+            <div id="js-result">JS: <span>-</span></div>
+            <div id="wasm-result">WASM: <span>-</span></div>
+            <pre id="matrix-output" style="margin-top:8px; white-space:pre-wrap;"></pre>
+        </div>
+
+        <script type="module" src="/index.ts"></script>
 </body>
 </html>

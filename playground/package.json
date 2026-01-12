@@ -18,5 +18,8 @@
     "@assemblyscript/loader": "^0.28.9",
     "as-bind": "^0.8.2",
     "vite-plugin-jsw": "workspace:*"
+  },
+  "devDependencies": {
+    "assemblyscript": "^0.28.9"
   }
 }

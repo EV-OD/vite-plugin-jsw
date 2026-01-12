@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "*.tsw": "typescript",
+    "*.jsw": "typescript"
+  }
+}

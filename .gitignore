@@ -25,7 +25,7 @@ pnpm-debug.log*
 *.tsbuildinfo
 
 # IDEs and editors
-.vscode/
+# .vscode/ — keeping settings for file associations
 .idea/
 *.sublime-workspace
 *.sublime-project

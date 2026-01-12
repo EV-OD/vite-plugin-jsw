@@ -9,7 +9,12 @@
     "strict": true,                // Enables all strict type-checking options
     "esModuleInterop": true,       // Ensures compatibility with CommonJS
     "skipLibCheck": true,          // Speeds up build by skipping library types
-    "isolatedModules": true        // Required for bundlers like esbuild/tsup
+    "isolatedModules": true,       // Required for bundlers like esbuild/tsup
+    // "types": ["vite-plugin-jsw/globals"]
   },
-  "include": ["src"]               // Only look for code in the src folder
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "exclude": [
+    "node_modules",
+    "**/*.tsw" 
+  ]
 }

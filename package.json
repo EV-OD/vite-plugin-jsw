@@ -12,15 +12,18 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./globals": "./globals.d.ts"
   },
   "files": [
-    "dist"
+    "dist",
+    "globals.d.ts"  
   ],
   "dependencies": {
     "as-bind": "^0.8.2"
