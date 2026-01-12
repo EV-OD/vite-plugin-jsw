@@ -1,7 +1,14 @@
 import { cascadeMultiplyJS, createRandomMatrix, trainJs, generateData, train } from './benchmark';
 import { UI } from './ui';
+import './style.css';
 
 function initPlayground() {
+  const nnHistory = {
+    runs: [] as number[],
+    jsTimes: [] as number[],
+    wasmTimes: [] as number[]
+  };
+
   const actions = {
     output: {
       "js": [],
@@ -19,15 +26,20 @@ function initPlayground() {
       const durationJs = performance.now() - t0;
       console.log(`JS NN time: ${durationJs} ms`);
       console.log(jsX);
-      // UI.updateResult('js-nn', durationJs);
+      UI.updateResult('js-nn', durationJs);
 
       let x;
       const t1 = performance.now();
       x = train(flatData, labels, 2, 0.01, nnIters);
       const durationWasm = performance.now() - t1;
       console.log(x);
-      // UI.updateResult('wasm-nn', durationWasm);
-      console.log(`WASM NN time: ${durationWasm} ms`);
+      UI.updateResult('wasm-nn', durationWasm);
+      console.log(`JSW NN time: ${durationWasm} ms`);
+
+      nnHistory.runs.push(nnHistory.runs.length + 1);
+      nnHistory.jsTimes.push(durationJs);
+      nnHistory.wasmTimes.push(durationWasm);
+      UI.updateChart(nnHistory.runs, nnHistory.jsTimes, nnHistory.wasmTimes);
     },
     'run-both': async () => {
       const { n, iters } = UI.getInputs();
@@ -46,26 +58,6 @@ function initPlayground() {
       // const resWasm = cascadeMultiply(a, b, n, iters);
       const durationWasm = performance.now() - t1;
 
-      // UI.updateResult('wasm', durationWasm);
-      // UI.setOutput(resWasm, n);
-      // actions.output.jsw.push({res: resWasm, n, duration: durationWasm});
-
-      // let js_res = actions.output.js[actions.output.js.length - 1];
-      // let wasm_res = actions.output.jsw[actions.output.jsw.length - 1];
-      
-      // // Simple correctness check
-      // let correct = true;
-      // for (let i = 0; i < js_res.res.length; i++) {
-      //   if (Math.abs(js_res.res[i] - wasm_res.res[i]) > 1e-6) {
-      //     correct = false;
-      //     break;
-      //   }
-      // }
-      // if (correct) {
-      //   console.log(`Results match for n=${js_res.n}`);
-      // } else {
-      //   console.error(`Results differ for n=${js_res.n}`);
-      // }
     }
   };
 

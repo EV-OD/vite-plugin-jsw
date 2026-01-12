@@ -36,6 +36,9 @@ importers:
       as-bind:
         specifier: ^0.8.2
         version: 0.8.2(@assemblyscript/loader@0.28.9)(assemblyscript@0.28.9)
+      chart.js:
+        specifier: ^4.5.1
+        version: 4.5.1
       vite-plugin-jsw:
         specifier: workspace:*
         version: link:..
@@ -218,6 +221,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
+  '@kurkle/color@0.3.4':
+    resolution: {integrity: sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w==}
+
   '@rollup/rollup-android-arm-eabi@4.55.1':
     resolution: {integrity: sha512-9R0DM/ykwfGIlNu6+2U09ga0WXeZ9MRC2Ter8jnz8415VbuIykVuc6bhdrbORFZANDmTDvq26mJrEVTl8TdnDg==}
     cpu: [arm]
@@ -381,6 +387,10 @@ packages:
   cac@6.7.14:
     resolution: {integrity: sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ==}
     engines: {node: '>=8'}
+
+  chart.js@4.5.1:
+    resolution: {integrity: sha512-GIjfiT9dbmHRiYi6Nl2yFCq7kkwdkp1W/lp2J99rX0yo9tgJGn3lKQATztIjb5tVtevcBtIdICNWqlq5+E8/Pw==}
+    engines: {pnpm: '>=8'}
 
   chokidar@4.0.3:
     resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
@@ -728,6 +738,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@kurkle/color@0.3.4': {}
+
   '@rollup/rollup-android-arm-eabi@4.55.1':
     optional: true
 
@@ -832,6 +844,10 @@ snapshots:
       load-tsconfig: 0.2.5
 
   cac@6.7.14: {}
+
+  chart.js@4.5.1:
+    dependencies:
+      '@kurkle/color': 0.3.4
 
   chokidar@4.0.3:
     dependencies:

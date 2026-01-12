@@ -6,33 +6,81 @@
     <title>JSW Plugin Test</title>
 </head>
 <body>
-    <h1>JSW: JS to WASM</h1>
-        <p>Compare vanilla JS matrix multiplication vs the WASM implementation below.</p>
+    <div class="container">
+        <header>
+            <h1>JSW: JS to WASM</h1>
+            <p class="subtitle">High-performance comparison playground: Vanilla JS vs WebAssembly</p>
+        </header>
 
-        <div style="font-family: sans-serif; margin-top: 12px;">
-            <label>Matrix size (n): <input id="matrix-size" type="number" value="64" min="2" step="2" style="width:80px"/></label>
-            <label style="margin-left:12px">Iterations: <input id="iterations" type="number" value="3" min="1" step="1" style="width:80px"/></label>
-            <label style="margin-left:12px">Neural Network Iterations: <input id="nn-iterations" type="number" value="1000" min="1" step="1" style="width:80px"/></label>
-            <label style="margin-left:12px">Data points size <input id="data-points-size" type="number" value="3" min="1" step="1" style="width:80px"/></label>
-
-            <button id="run-both">Run Both</button>
-            <button id="run_nn">Run Neural Network</button>
+        <div class="card">
+            <h3>Configuration</h3>
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label for="matrix-size">Matrix Size (n)</label>
+                    <input id="matrix-size" type="number" value="64" min="2" step="2"/>
+                </div>
+                <div class="control-group">
+                    <label for="iterations">Matrix Iterations</label>
+                    <input id="iterations" type="number" value="3" min="1" step="1"/>
+                </div>
+                <div class="control-group">
+                    <label for="nn-iterations">Neural Net Iterations</label>
+                    <input id="nn-iterations" type="number" value="1000" min="1" step="1"/>
+                </div>
+                <div class="control-group">
+                    <label for="data-points-size">Data Points</label>
+                    <input id="data-points-size" type="number" value="100" min="1" step="1"/>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button id="run-both">
+                    <span>⚡ Run Matrix Benchmark</span>
+                </button>
+                <button id="run_nn">
+                    <span>🧠 Run Neural Network</span>
+                </button>
+            </div>
         </div>
 
-        <div id="results" style="font-family: sans-serif; margin-top: 12px;">
-            <h3>Results</h3>
-            <div id="js-result">JS: <span>-</span></div>
-            <div id="wasm-result">WASM: <span>-</span></div>
-            <pre id="matrix-output" style="margin-top:8px; white-space:pre-wrap;"></pre>
+        <div class="card">
+            <h3>Matrix Multiplication Results</h3>
+            <div class="results-grid">
+                <div id="js-result" class="result-box">
+                    <div class="result-label">JavaScript</div>
+                    <div class="result-value"><span>-</span></div>
+                </div>
+                <div id="wasm-result" class="result-box">
+                    <div class="result-label">JSW</div>
+                    <div class="result-value"><span>-</span></div>
+                </div>
+            </div>
+            <pre id="matrix-output" placeholder="Matrix output will appear here..."></pre>
         </div>
 
-        <div id="nn-results" style="font-family: sans-serif; margin-top: 12px;">
+        <div class="card">
             <h3>Neural Network Results</h3>
-            <div id="js-nn-result">JS NN: <span>-</span></div>
-            <div id="wasm-nn-result">WASM NN: <span>-</span></div>
-            <pre id="nn-output" style="margin-top:8px; white-space:pre-wrap;"></pre>
+            <div class="results-grid">
+                <div id="js-nn-result" class="result-box">
+                    <div class="result-label">JavaScript</div>
+                    <div class="result-value"><span>-</span></div>
+                </div>
+                <div id="wasm-nn-result" class="result-box">
+                    <div class="result-label">JSW</div>
+                    <div class="result-value"><span>-</span></div>
+                </div>
+            </div>
+            <pre id="nn-output"></pre>
         </div>
 
-        <script type="module" src="./index.ts"></script>
+        <div class="card">
+            <h3>Performance History</h3>
+            <div class="chart-container">
+                <canvas id="nn-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./index.ts"></script>
 </body>
 </html>
