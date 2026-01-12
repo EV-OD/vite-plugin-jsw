@@ -2,7 +2,7 @@ export const UI = {
   getInputs: () => ({
     n: Number((document.getElementById('matrix-size') as HTMLInputElement).value) || 64,
     iters: Number((document.getElementById('iterations') as HTMLInputElement).value) || 1,
-    nnIters: Number((document.getElementById('nn-iterations') as HTMLInputElement).value) || 1,
+    nnIters: Number((document.getElementById('nn-iterations') as HTMLInputElement).value) || 1000,
     dataPointsSize: Number((document.getElementById('data-points-size') as HTMLInputElement).value) || 100,
   }),
 

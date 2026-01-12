@@ -1,7 +1,7 @@
 import { cascadeMultiplyJS } from './jsMath';
-import {cascadeMultiply } from './math';
-import { SimpleNNJs } from './neural_js';
-import { createNN } from './neural_jsw';
+// import {cascadeMultiply } from './math';
+import { trainJs } from './neural_js';
+import { train } from './neural_jsw';
 
 /**
  * Utility to generate random data
@@ -12,31 +12,34 @@ export const createRandomMatrix = (n: number): Float64Array => {
 
 
 /**
- * Generates random 2D points for binary classification.
- * Rule: If y > x, label is 1. If y <= x, label is 0.
- * @param {number} count - Number of data points to generate
+ * Generates flattened data for AssemblyScript.
+ * @param {number} count - Number of data points
+ * @returns {Object} { flatData: Float64Array, labels: Float64Array }
  */
 function generateData(count) {
-  const points = [];
-  const labels = [];
+  const inputSize = 2; // x and y
+  
+  // Create two flat buffers
+  // flatData will look like: [x1, y1, x2, y2, x3, y3...]
+  const flatData = new Float64Array(count * inputSize);
+  const labels = new Float64Array(count);
 
   for (let i = 0; i < count; i++) {
-    // Generate random coordinates between -1 and 1
     const x = Math.random() * 2 - 1;
     const y = Math.random() * 2 - 1;
 
-    // The "True" rule our AI needs to discover:
-    const label = y > x ? 1.0 : 0.0;
+    // Fill flatData at the correct offsets
+    const offset = i * inputSize;
+    flatData[offset] = x;
+    flatData[offset + 1] = y;
 
-    // We use Float64Array because that's what our AssemblyScript expects
-    const features = new Float64Array([x, y]);
-    
-    points.push(features);
-    labels.push(label);
+    // Fill label
+    labels[i] = y > x ? 1.0 : 0.0;
   }
 
-  return { points, labels };
+  return { flatData, labels };
 }
 
 
-export { cascadeMultiply, cascadeMultiplyJS, generateData, createNN, SimpleNNJs };
+
+export { cascadeMultiplyJS, generateData, trainJs, train };
