@@ -55,15 +55,15 @@ export default function BenchmarkManager() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto p-6 lg:p-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <main className="max-w-7xl mx-auto p-6 lg:p-10 space-y-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Left Column: List & History */}
-          <div className="lg:col-span-7 space-y-8">
+          {/* Top-Left Column: List */}
+          <div className="lg:col-span-4 sticky top-32">
             <section>
               <div className="flex items-center justify-between mb-4 px-1">
-                <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400">Defined Benchmarks</h2>
-                <span className="text-[10px] bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full border border-slate-700">
+                <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Selection</h2>
+                <span className="text-[10px] bg-slate-900 text-slate-600 px-2 py-0.5 rounded-full border border-slate-800">
                   {registryEntries.length} Available
                 </span>
               </div>
@@ -73,20 +73,24 @@ export default function BenchmarkManager() {
                 ))}
               </div>
             </section>
-
-            <section>
-              <ResultsTable />
-            </section>
           </div>
 
-          {/* Right Column: Details & Analysis */}
-          <div className="lg:col-span-5 relative">
-            <div className="lg:sticky lg:top-32">
-              <BenchmarkDetails />
-            </div>
+          {/* Top-Right Column: History */}
+          <div className="lg:col-span-8">
+            <ResultsTable />
           </div>
-
         </div>
+
+        {/* Bottom Full-Width Area: Details & Analysis */}
+        <section className="pt-8 border-t border-slate-900">
+          <div className="flex items-center gap-4 mb-8 px-1">
+            <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Live Analysis & Comparison</h2>
+            <div className="h-px flex-1 bg-gradient-to-r from-slate-800 to-transparent"></div>
+          </div>
+          <div className="w-full">
+            <BenchmarkDetails />
+          </div>
+        </section>
       </main>
 
       <footer className="mt-20 border-t border-slate-900 py-10 text-center">
