@@ -1,7 +1,6 @@
 import { fibJs } from "./js";
 import { fibWasm } from "./wasm";
 import { register, type BenchEntry, type BenchResult } from "../../register";
-
 const data = [Math.floor(Math.random() * 25) + 10]
 
 const argsData = () => data;

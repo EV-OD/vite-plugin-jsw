@@ -67,7 +67,7 @@ export default function BenchmarkManager() {
                   {registryEntries.length} Available
                 </span>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 {registryEntries.map(([name, entry]) => (
                   <BenchmarkItem key={name} name={name} entry={entry} />
                 ))}
