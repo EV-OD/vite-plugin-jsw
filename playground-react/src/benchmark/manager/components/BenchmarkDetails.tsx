@@ -39,12 +39,16 @@ export function BenchmarkDetails() {
     )
   }
 
-  // Find runs for this benchmark
-  const jsRuns = runs.filter(r => r.name === selected && r.variant === 'js' && r.status === 'done')
-  const wasmRuns = runs.filter(r => r.name === selected && r.variant === 'wasm' && r.status === 'done')
-  
-  const displayedJs = groupJs ? jsRuns : jsRuns.slice(0, 1)
-  const displayedWasm = groupWasm ? wasmRuns : wasmRuns.slice(0, 1)
+  // Find runs for this benchmark and group by batch
+  const batchMap = runs.filter(r => r.name === selected && r.status === 'done').reduce((acc, r) => {
+    if (!acc[r.batchId]) acc[r.batchId] = { id: r.batchId, js: null as any, wasm: null as any, timestamp: parseInt(r.id.split(':').pop()!) }
+    if (r.variant === 'js') acc[r.batchId].js = r.res
+    if (r.variant === 'wasm') acc[r.batchId].wasm = r.res
+    return acc
+  }, {} as Record<string, { id: string, js: any, wasm: any, timestamp: number }>)
+
+  const sortedBatches = Object.values(batchMap).sort((a, b) => b.timestamp - a.timestamp)
+  const displayedBatches = sortedBatches.slice(0, 1) // Just show latest comparison for now, or allow toggle
 
   const isJsRunning = runs.some(r => r.name === selected && r.variant === 'js' && r.status === 'running')
   const isWasmRunning = runs.some(r => r.name === selected && r.variant === 'wasm' && r.status === 'running')
@@ -54,7 +58,7 @@ export function BenchmarkDetails() {
     <div className="space-y-6">
       <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-xl">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex flex-col">
+          <div className="flex flex-col text-left">
             <h2 className="text-xl font-bold text-slate-100">{selected}</h2>
             <div className="flex items-center gap-3 mt-1">
               <div className="flex bg-slate-900/50 p-0.5 rounded-md border border-slate-700">
@@ -91,11 +95,11 @@ export function BenchmarkDetails() {
         </div>
         
         {entry.description && (
-          <p className="text-sm text-slate-300 mb-4 leading-relaxed italic">{entry.description}</p>
+          <p className="text-sm text-slate-300 mb-4 leading-relaxed italic text-left">{entry.description}</p>
         )}
 
         <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
+          <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 text-left">
             <div className="text-[10px] uppercase font-bold text-slate-500 mb-1 flex justify-between">
               <span>JS Variant</span>
               <span className="text-blue-400/50">{entry.js?.fn.name || '(anon)'}</span>
@@ -105,7 +109,7 @@ export function BenchmarkDetails() {
               {JSON.stringify(jsArgs)}
             </div>
           </div>
-          <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
+          <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 text-left">
             <div className="text-[10px] uppercase font-bold text-slate-500 mb-1 flex justify-between">
               <span>WASM Variant</span>
               <span className="text-emerald-400/50">{entry.wasm?.fn.name || '(anon)'}</span>
@@ -118,49 +122,24 @@ export function BenchmarkDetails() {
         </div>
 
         <div className="space-y-6">
-          {displayedJs.length > 0 && (
-            <div className="space-y-4">
-              <div className="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
-                <span>JS Runs</span>
-                <span className="h-px flex-1 bg-blue-500/20"></span>
+          {displayedBatches.map(batch => (
+            <div key={batch.id} className="space-y-4">
+               <div className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <span>Latest Execution Comparison</span>
+                <span className="h-px flex-1 bg-slate-700"></span>
+                <span className="text-[10px] font-mono lowercase">{(batch.js?.iters || batch.wasm?.iters)} iters</span>
               </div>
-              {displayedJs.map(run => (
-                <div key={run.id} className="p-4 bg-slate-900 rounded-lg border border-slate-700">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] text-slate-500 font-mono italic">{new Date(parseInt(run.id.split(':').pop()!)).toLocaleTimeString()}</span>
-                    <span className="text-xs text-slate-500">{run.res?.iters} iters</span>
-                  </div>
-                  <div className="text-2xl font-mono text-slate-100 mb-2">
-                    {run.res?.avg.toFixed(4)} <span className="text-sm text-slate-500 italic">ms avg</span>
-                  </div>
-                  {run.res && <BenchmarkChart res={run.res} />}
-                </div>
-              ))}
+              
+              <BenchmarkChart 
+                results={[
+                  ...(batch.js ? [{ ...batch.js, color: 'text-blue-500', fill: 'bg-blue-500' }] : []),
+                  ...(batch.wasm ? [{ ...batch.wasm, color: 'text-emerald-500', fill: 'bg-emerald-500' }] : [])
+                ]} 
+              />
             </div>
-          )}
+          ))}
 
-          {displayedWasm.length > 0 && (
-            <div className="space-y-4">
-              <div className="text-xs font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
-                <span>WASM Runs</span>
-                <span className="h-px flex-1 bg-emerald-500/20"></span>
-              </div>
-              {displayedWasm.map(run => (
-                <div key={run.id} className="p-4 bg-slate-900 rounded-lg border border-slate-700">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] text-slate-500 font-mono italic">{new Date(parseInt(run.id.split(':').pop()!)).toLocaleTimeString()}</span>
-                    <span className="text-xs text-slate-500">{run.res?.iters} iters</span>
-                  </div>
-                  <div className="text-2xl font-mono text-slate-100 mb-2">
-                    {run.res?.avg.toFixed(4)} <span className="text-sm text-slate-500 italic">ms avg</span>
-                  </div>
-                  {run.res && <BenchmarkChart res={run.res} />}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {jsRuns.length === 0 && wasmRuns.length === 0 && (
+          {sortedBatches.length === 0 && (
             <div className="py-12 bg-slate-900/30 rounded-lg border border-slate-800 border-dashed text-center">
               <p className="text-xs text-slate-500 italic">No execution data available yet.</p>
               <p className="text-[10px] text-slate-600 mt-1">Run a variant to see performance visualization stack.</p>
