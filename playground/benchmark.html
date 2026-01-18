@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Benchmark Manager</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#9aa4b2;--accent:#6ee7b7;--danger:#ff7a7a}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071024 0%,#071428 100%);color:#e6eef6;font-family:Inter,Segoe UI,Roboto,system-ui,Arial}
+    .wrap{max-width:1100px;margin:32px auto;padding:24px}
+    h1{margin:0 0 12px;font-size:22px}
+    .grid{display:grid;grid-template-columns:1fr 320px;gap:18px}
+    .card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,.6)}
+    .bench-list{display:flex;flex-direction:column;gap:10px}
+    .bench-item{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent)}
+    .bench-meta{display:flex;gap:8px;align-items:center}
+    button{background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit;padding:8px 10px;border-radius:8px;cursor:pointer}
+    .controls{display:flex;gap:8px;align-items:center}
+    label{font-size:13px;color:var(--muted)}
+    input[type=number]{width:84px;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{padding:8px;text-align:left;border-bottom:1px dashed rgba(255,255,255,0.03);font-size:13px}
+    .result{font-weight:600;color:var(--accent)}
+    .bar{height:10px;background:#08202b;border-radius:999px;overflow:hidden}
+    .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#3dd9b1)}
+    .muted{color:var(--muted);font-size:13px}
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+    pre{white-space:pre-wrap;word-break:break-word;background:rgba(255,255,255,0.02);padding:8px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Benchmark Manager</h1>
+    <div class="grid">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div>
+            <div class="muted">Registered benchmarks</div>
+            <div style="font-size:18px;margin-top:4px">Available suites</div>
+          </div>
+          <div class="controls">
+            <label>Iterations</label>
+            <input id="iterations" type="number" value="1000" min="1">
+          </div>
+        </div>
+        <div class="bench-list" id="benchList"></div>
+      </div>
+
+      <div class="card">
+        <div class="muted">Details</div>
+        <div style="margin-top:8px" id="detailPane">
+          <div class="muted">Select a benchmark to see details and run controls.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:18px" class="card">
+      <div class="muted">Results</div>
+      <table id="resultsTable">
+        <thead>
+          <tr><th>Benchmark</th><th>Variant</th><th>Iterations</th><th>Time (ms)</th><th>Avg (ms)</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <footer>Tip: Benchmarks may require a bundler (Vite) to run WASM modules in the browser.</footer>
+    </div>
+  </div>
+
+  <script type="module">
+    import initManager from './benchmark/manager.ts'
+    initManager(document)
+  </script>
+</body>
+</html>
