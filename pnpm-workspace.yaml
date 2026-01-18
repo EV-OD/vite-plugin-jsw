@@ -1,3 +1,4 @@
 packages:
   - "."           # The plugin itself
   - "playground"  # The test project
+  - "playground-react"

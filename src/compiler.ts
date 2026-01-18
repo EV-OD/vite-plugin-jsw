@@ -10,12 +10,12 @@ const isProd = process.env.NODE_ENV === 'production';
 
 export async function compileAs(code: string) {
   let tmp;
-  if (isProd){
+  // if (isProd){
   tmp = await mkdtemp(join(tmpdir(), 'as-'));
-  }else{
-    // create actual dir for testing
-    tmp = join(process.cwd(), 'tmp');
-  }
+  // }else{
+  //   // create actual dir for testing
+  //   tmp = join(process.cwd(), 'tmp');
+  // }
 
   const srcPath = join(tmp, 'module.ts');
   const outPath = join(tmp, 'module.wasm');
@@ -44,11 +44,11 @@ export async function compileAs(code: string) {
     const wasmBuf = await readFile(outPath);
     const jsGlue = await readFile(jsGluePath, 'utf8');
 
-    if (isProd){
+    // if (isProd){
     await rm(tmp, { recursive: true, force: true });
-    }else{
+    // }else{
       // in dev mode, keep tmp files for inspection
-    }
+    // }
 
     return {
       wasm: new Uint8Array(wasmBuf),

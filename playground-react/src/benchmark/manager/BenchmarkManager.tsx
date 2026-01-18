@@ -1,253 +1,101 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { getRegistry, type BenchEntry } from '../register'
+import { useEffect } from 'react'
+import { useBenchmarkStore } from '../store'
+import { BenchmarkItem } from './components/BenchmarkItem'
+import { BenchmarkDetails } from './components/BenchmarkDetails'
+import { ResultsTable } from './components/ResultsTable'
 
-function fmt(n: number){ return n.toFixed(3) }
+export default function BenchmarkManager() {
+  const registryEntries = useBenchmarkStore(s => s.registryEntries)
+  const iterations = useBenchmarkStore(s => s.iterations)
+  const setIterations = useBenchmarkStore(s => s.setIterations)
+  const refreshRegistry = useBenchmarkStore(s => s.refreshRegistry)
+  const selected = useBenchmarkStore(s => s.selected)
+  const setSelected = useBenchmarkStore(s => s.setSelected)
 
-async function resolveArgs(argsOrFactory?: any[]|(()=>any[]|Promise<any[]>)){
-  if(!argsOrFactory) return []
-  if(typeof argsOrFactory === 'function'){
-    const r = (argsOrFactory as Function)()
-    return r instanceof Promise ? await r : r
-  }
-  return argsOrFactory
-}
+  useEffect(() => {
+    refreshRegistry()
+  }, [refreshRegistry])
 
-async function runVariant(fn: (...args:any[])=>any, argsOrFactory: any[]|(()=>any[]|Promise<any[]>)|undefined, iterations: number, collectSamples=false){
-  const args = await resolveArgs(argsOrFactory)
-  let lastReturn: any
-  for(let i=0;i<10;i++){
-    const r = fn(...args)
-    lastReturn = r instanceof Promise ? await r : r
-  }
-  const samples: number[] = []
-  const start = performance.now()
-  if(collectSamples){
-    for(let i=0;i<iterations;i++){
-      const itStart = performance.now()
-      const r = fn(...args)
-      lastReturn = r instanceof Promise ? await r : r
-      const itEnd = performance.now()
-      samples.push(itEnd - itStart)
+  useEffect(() => {
+    if (selected === null && registryEntries.length > 0) {
+      setSelected(registryEntries[0][0])
     }
-  } else {
-    for(let i=0;i<iterations;i++){
-      const r = fn(...args)
-      lastReturn = r instanceof Promise ? await r : r
-    }
-  }
-  const end = performance.now()
-  const total = end - start
-  const avg = total / iterations
-  return { total, avg, lastReturn, samples }
-}
-
-function RenderByFormat({name, variant, format, res}:{name:string,variant:string,format:'barchart'|'linechart'|'table',res:any}){
-  const ref = useRef<HTMLDivElement|null>(null)
-  useEffect(()=>{
-    const container = ref.current!
-    container.innerHTML = ''
-    const header = document.createElement('div')
-    header.className = 'mb-2'
-    header.innerHTML = `<div class="font-semibold">${name} — ${variant}</div><div class="text-sm text-gray-400">avg: ${fmt(res.avg)} ms — total: ${fmt(res.total)} ms</div>`
-    container.appendChild(header)
-    const samples: number[] = res.samples || []
-    if(samples.length===0){
-      const p = document.createElement('div')
-      p.className = 'text-sm text-gray-400'
-      p.textContent = 'No per-iteration samples available.'
-      container.appendChild(p)
-      return
-    }
-    if(format==='table'){
-      const t = document.createElement('table')
-      t.className = 'w-full table-auto text-sm'
-      t.innerHTML = `<thead><tr><th class="text-left p-1">#</th><th class="text-left p-1">ms</th></tr></thead>`
-      const tb = document.createElement('tbody')
-      samples.forEach((s,i)=>{ const tr = document.createElement('tr'); tr.innerHTML = `<td class="p-1">${i+1}</td><td class="p-1">${fmt(s)}</td>`; tb.appendChild(tr) })
-      t.appendChild(tb)
-      container.appendChild(t)
-      return
-    }
-    // simple svg charts
-    const width = 480
-    const height = 120
-    const svgNS = 'http://www.w3.org/2000/svg'
-    const svg = document.createElementNS(svgNS,'svg')
-    svg.setAttribute('width', String(width))
-    svg.setAttribute('height', String(height))
-    svg.classList.add('block','mt-2')
-    const max = Math.max(...samples)
-    if(format==='barchart'){
-      const barW = Math.max(2, Math.floor(width / samples.length))
-      samples.forEach((s,i)=>{
-        const h = (s / max) * (height - 10)
-        const rect = document.createElementNS(svgNS,'rect')
-        rect.setAttribute('x', String(i * barW))
-        rect.setAttribute('y', String(height - h))
-        rect.setAttribute('width', String(barW-1))
-        rect.setAttribute('height', String(h))
-        rect.setAttribute('fill', '#4caf50')
-        svg.appendChild(rect)
-      })
-    } else {
-      const points = samples.map((s,i)=>{
-        const x = (i / (samples.length - 1 || 1)) * (width - 2)
-        const y = height - (s / max) * (height - 10)
-        return `${x},${y}`
-      }).join(' ')
-      const poly = document.createElementNS(svgNS,'polyline')
-      poly.setAttribute('points', points)
-      poly.setAttribute('fill','none')
-      poly.setAttribute('stroke','#2196f3')
-      poly.setAttribute('stroke-width','2')
-      svg.appendChild(poly)
-      samples.forEach((s,i)=>{
-        const x = (i / (samples.length - 1 || 1)) * (width - 2)
-        const y = height - (s / max) * (height - 10)
-        const c = document.createElementNS(svgNS,'circle')
-        c.setAttribute('cx', String(x))
-        c.setAttribute('cy', String(y))
-        c.setAttribute('r','2')
-        c.setAttribute('fill','#2196f3')
-        svg.appendChild(c)
-      })
-    }
-    container.appendChild(svg)
-  },[name,variant,format,res])
-  return <div ref={ref}></div>
-}
-
-export default function BenchmarkManager(){
-  const registry = useMemo(()=>Array.from(getRegistry().entries()), [])
-  const [selected, setSelected] = useState<string | null>(registry[0]?.[0] || null)
-  const [runs, setRuns] = useState<Array<any>>([])
-  const [iterations, setIterations] = useState<number>(1000)
-  const [groupState, setGroupState] = useState<Record<string,boolean>>({})
-
-  useEffect(()=>{
-    if(selected===null && registry.length) setSelected(registry[0][0])
-  },[registry, selected])
-
-  const selectedEntry = selected ? getRegistry().get(selected) as BenchEntry | undefined : undefined
-
-  async function handleRun(name:string, variantKey: 'js'|'wasm'){
-    const entry = getRegistry().get(name)
-    if(!entry) return
-    const variant = (entry as any)[variantKey]
-    if(!variant) return
-    // show loading per-run in UI by adding a temporary run
-    const runId = `${name}:${variantKey}:${Date.now()}`
-    setRuns(prev=>[{ id: runId, name, variant: variantKey, status: 'running' }, ...prev])
-    const res = await runVariant(variant.fn, variant.args, iterations, !!entry.showAllResults)
-    setRuns(prev=>prev.map(r=> r.id===runId ? { ...r, status: 'done', res } : r))
-  }
-
-  function toggleGroup(name:string, variantKey: 'js'|'wasm'){
-    const k = `${name}:${variantKey}`
-    setGroupState(s=>({ ...s, [k]: !s[k] }))
-  }
+  }, [selected, registryEntries, setSelected])
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">Benchmark Manager (React)</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="col-span-2">
-          <div className="bg-slate-800 p-4 rounded-lg">
-            <div className="flex justify-between items-center mb-3">
-              <div>
-                <div className="text-sm text-gray-400">Registered benchmarks</div>
-                <div className="text-lg font-medium">Available suites</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-400">Iterations</label>
-                <input className="w-24 p-1 rounded bg-slate-700 text-sm" type="number" value={iterations} onChange={e=>setIterations(Number(e.target.value)||1)} />
-              </div>
+    <div className="min-h-screen bg-slate-950 text-slate-200 antialiased selection:bg-blue-500/30">
+      {/* Header */}
+      <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 sticky top-0 z-10 shadow-lg">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-linear-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-xl shadow-blue-500/10 border border-blue-400/20">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
             </div>
-            <div className="flex flex-col gap-2">
-              {registry.map(([name,entry])=> (
-                <div key={name} className="flex items-center justify-between bg-slate-700 p-2 rounded">
-                  <div>
-                    <div className="font-medium">{name}</div>
-                    <div className="text-sm text-gray-400">{entry.js? 'js':''} {entry.wasm? 'wasm':''}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button className="px-2 py-1 bg-slate-600 rounded" onClick={()=>setSelected(name)}>Details</button>
-                    {entry.js && <>
-                      <button className="px-2 py-1 bg-slate-600 rounded" onClick={()=>handleRun(name,'js')}>Run JS</button>
-                      <button className="px-2 py-1 bg-slate-600 rounded" onClick={()=>toggleGroup(name,'js')}>{groupState[`${name}:js`] ? 'Ungrouped' : 'Grouped'}</button>
-                    </>}
-                    {entry.wasm && <>
-                      <button className="px-2 py-1 bg-slate-600 rounded" onClick={()=>handleRun(name,'wasm')}>Run WASM</button>
-                      <button className="px-2 py-1 bg-slate-600 rounded" onClick={()=>toggleGroup(name,'wasm')}>{groupState[`${name}:wasm`] ? 'Ungrouped' : 'Grouped'}</button>
-                    </>}
-                  </div>
-                </div>
-              ))}
+            <div>
+              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-slate-400">
+                JSW Benchmark
+              </h1>
+              <p className="text-xs text-slate-500 font-medium tracking-tight">Performance Lab & Visualization</p>
             </div>
           </div>
+          
+          <div className="flex items-center gap-4 bg-slate-800/50 p-2 rounded-lg border border-slate-700/50">
+            <label htmlFor="iters" className="text-xs font-bold uppercase tracking-widest text-slate-500 pl-2">Iterations</label>
+            <input
+              id="iters"
+              type="number"
+              value={iterations}
+              onChange={(e) => setIterations(Math.max(1, parseInt(e.target.value) || 0))}
+              className="w-28 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+            />
+          </div>
+        </div>
+      </header>
 
-          <div className="bg-slate-800 p-4 rounded-lg mt-4">
-            <div className="text-sm text-gray-400 mb-2">Results</div>
-            <table className="w-full text-sm table-auto">
-              <thead>
-                <tr className="text-left text-gray-300"><th className="p-1">Benchmark</th><th className="p-1">Variant</th><th className="p-1">Iterations</th><th className="p-1">Time (ms)</th><th className="p-1">Avg (ms)</th></tr>
-              </thead>
-              <tbody>
-                {runs.map(r=> r.status==='done' ? (
-                  <tr key={r.id} className="border-t border-slate-700"><td className="p-1">{r.name}</td><td className="p-1">{r.variant}</td><td className="p-1">{iterations}</td><td className="p-1 font-semibold">{fmt(r.res.total)}</td><td className="p-1">{fmt(r.res.avg)}</td></tr>
-                ) : (
-                  <tr key={r.id}><td colSpan={5} className="p-1 text-sm text-gray-300">{r.name} {r.variant} running…</td></tr>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto p-6 lg:p-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Left Column: List & History */}
+          <div className="lg:col-span-7 space-y-8">
+            <section>
+              <div className="flex items-center justify-between mb-4 px-1">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400">Defined Benchmarks</h2>
+                <span className="text-[10px] bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full border border-slate-700">
+                  {registryEntries.length} Available
+                </span>
+              </div>
+              <div className="space-y-3">
+                {registryEntries.map(([name, entry]) => (
+                  <BenchmarkItem key={name} name={name} entry={entry} />
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </section>
+
+            <section>
+              <ResultsTable />
+            </section>
           </div>
-        </div>
 
-        <div>
-          <div className="bg-slate-800 p-4 rounded-lg">
-            <div className="text-sm text-gray-400">Details</div>
-            <div className="mt-2">
-              {selectedEntry ? (
-                <div>
-                  <div className="font-semibold">{selected}</div>
-                  {selectedEntry.description && <div className="text-sm text-gray-400">{selectedEntry.description}</div>}
-
-                  {selectedEntry.js && (
-                    <div className="mt-3">
-                      <div className="font-medium">JS variant</div>
-                      <pre className="bg-slate-700 p-2 rounded text-sm mt-2">args: {typeof selectedEntry.js.args === 'function' ? '(factory)' : JSON.stringify(selectedEntry.js.args||[])}\n(fn: {selectedEntry.js.fn.name || 'anonymous'})</pre>
-                      <div className="flex gap-2 mt-2">
-                        <button className="px-2 py-1 bg-slate-600 rounded" onClick={()=>handleRun(selected as string,'js')}>Run JS</button>
-                        <button className="px-2 py-1 bg-slate-600 rounded" onClick={()=>toggleGroup(selected as string,'js')}>{groupState[`${selected}:js`] ? 'Ungrouped' : 'Grouped'}</button>
-                      </div>
-                      <div className="mt-3" id={`out-${selected}-js`}>
-                        {/* render area - when run completes we'll render inside runs list area or here via effect */}
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedEntry.wasm && (
-                    <div className="mt-3">
-                      <div className="font-medium">WASM variant</div>
-                      <pre className="bg-slate-700 p-2 rounded text-sm mt-2">args: {typeof selectedEntry.wasm.args === 'function' ? '(factory)' : JSON.stringify(selectedEntry.wasm.args||[])}\n(fn: {selectedEntry.wasm.fn.name || 'anonymous'})</pre>
-                      <div className="flex gap-2 mt-2">
-                        <button className="px-2 py-1 bg-slate-600 rounded" onClick={()=>handleRun(selected as string,'wasm')}>Run WASM</button>
-                        <button className="px-2 py-1 bg-slate-600 rounded" onClick={()=>toggleGroup(selected as string,'wasm')}>{groupState[`${selected}:wasm`] ? 'Ungrouped' : 'Grouped'}</button>
-                      </div>
-                      <div className="mt-3" id={`out-${selected}-wasm`} />
-                    </div>
-                  )}
-
-                </div>
-              ) : (
-                <div className="text-sm text-gray-400">Select a benchmark to see details and run controls.</div>
-              )}
+          {/* Right Column: Details & Analysis */}
+          <div className="lg:col-span-5 relative">
+            <div className="lg:sticky lg:top-32">
+              <BenchmarkDetails />
             </div>
           </div>
+
         </div>
+      </main>
 
-      </div>
-
+      <footer className="mt-20 border-t border-slate-900 py-10 text-center">
+        <div className="max-w-7xl mx-auto px-6">
+          <p className="text-xs text-slate-600 font-medium tracking-wide uppercase">
+            Built with React 19 • Tailwind CSS 4 • Zustand 5 • vite-plugin-jsw
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }

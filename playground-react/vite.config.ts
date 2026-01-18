@@ -8,7 +8,8 @@ import jsw from "vite-plugin-jsw"
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    jsw(),
+    // cast to local vite PluginOption to avoid type mismatch between multiple vite instances
+    (jsw() as unknown) as import('vite').PluginOption,
     react(),
     tailwindcss(),
     ],
