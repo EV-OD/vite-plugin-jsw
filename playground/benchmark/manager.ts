@@ -1,11 +1,22 @@
 import { registry } from './register.ts'
 
-type Variant = { fn: (...args: any[]) => any | Promise<any>, args?: any[], ui?: { renderResult?: (container: HTMLElement, result: any)=>void } }
-type BenchEntry = { js?: Variant, wasm?: Variant, ui?: { renderResult?: (container: HTMLElement, result: any)=>void }, description?: string }
+type ArgsOrFactory = any[] | (() => any[] | Promise<any[]>)
+type Variant = { fn: (...args: any[]) => any | Promise<any>, args?: ArgsOrFactory, ui?: { renderResult?: (container: HTMLElement, result: any)=>void } }
+type BenchEntry = { js?: Variant, wasm?: Variant, ui?: { renderResult?: (container: HTMLElement, result: any)=>void }, description?: string, showAllResults?: boolean, format?: 'barchart'|'linechart'|'table' }
 
 function fmt(n: number){ return n.toFixed(3) }
 
-async function runVariant(fn: (...args:any[]) => any, args: any[], iterations: number){
+async function resolveArgs(argsOrFactory?: ArgsOrFactory){
+  if(!argsOrFactory) return []
+  if(typeof argsOrFactory === 'function'){
+    const res = (argsOrFactory as Function)()
+    return res instanceof Promise ? await res : res
+  }
+  return argsOrFactory
+}
+
+async function runVariant(fn: (...args:any[]) => any, argsOrFactory: ArgsOrFactory|undefined, iterations: number, collectSamples = false){
+  const args = await resolveArgs(argsOrFactory)
   // warmup and capture a sample return value
   let lastReturn: any = undefined
   for(let i=0;i<10;i++){
@@ -13,14 +24,26 @@ async function runVariant(fn: (...args:any[]) => any, args: any[], iterations: n
     lastReturn = r instanceof Promise ? await r : r
   }
 
+  const samples: number[] = []
   const start = performance.now()
-  for(let i=0;i<iterations;i++){
-    const r = fn(...args)
-    lastReturn = r instanceof Promise ? await r : r
+  if(collectSamples){
+    for(let i=0;i<iterations;i++){
+      const itStart = performance.now()
+      const r = fn(...args)
+      lastReturn = r instanceof Promise ? await r : r
+      const itEnd = performance.now()
+      samples.push(itEnd - itStart)
+    }
+  } else {
+    for(let i=0;i<iterations;i++){
+      const r = fn(...args)
+      lastReturn = r instanceof Promise ? await r : r
+    }
   }
   const end = performance.now()
   const total = end - start
-  return { total, avg: total / iterations, lastReturn }
+  const avg = total / iterations
+  return { total, avg, lastReturn, samples }
 }
 
 export default function initManager(doc: Document){
@@ -68,7 +91,8 @@ export default function initManager(doc: Document){
       block.style.marginTop = '8px'
       block.innerHTML = `<div style="font-weight:600">JS variant</div>`
       const pre = document.createElement('pre')
-      pre.textContent = `args: ${JSON.stringify(entry.js.args||[])}\n(fn: ${entry.js.fn.name || 'anonymous'})`
+      const argsPreview = typeof entry.js!.args === 'function' ? '(factory)' : JSON.stringify(entry.js!.args||[])
+      pre.textContent = `args: ${argsPreview}\n(fn: ${entry.js.fn.name || 'anonymous'})`
       const out = document.createElement('div')
       out.style.marginTop = '8px'
       block.appendChild(out)
@@ -79,11 +103,11 @@ export default function initManager(doc: Document){
       btn.onclick = async ()=>{
         btn.disabled = true
         const iters = Number(iterationsInput.value)||1
-        const res = await runVariant(entry.js!.fn, entry.js!.args||[], iters)
+        const res = await runVariant(entry.js!.fn, entry.js!.args, iters, !!entry.showAllResults)
         addResultRow(name,'js',iters,res.total,res.avg)
         // call custom renderer if present
         const renderer = entry.js!.ui?.renderResult || entry.ui?.renderResult
-        if(renderer){ renderer(out, { name, variant: 'js', iters, ...res }) }
+        if(renderer){ renderer(out, { name, variant: 'js', iters, format: entry.format, ...res }) }
         btn.disabled = false
       }
       block.appendChild(pre)
@@ -96,7 +120,8 @@ export default function initManager(doc: Document){
       block.style.marginTop = '8px'
       block.innerHTML = `<div style="font-weight:600">WASM variant</div>`
       const pre = document.createElement('pre')
-      pre.textContent = `args: ${JSON.stringify(entry.wasm.args||[])}\n(fn: ${entry.wasm.fn.name || 'anonymous'})`
+      const wasmArgsPreview = typeof entry.wasm!.args === 'function' ? '(factory)' : JSON.stringify(entry.wasm!.args||[])
+      pre.textContent = `args: ${wasmArgsPreview}\n(fn: ${entry.wasm.fn.name || 'anonymous'})`
       const out = document.createElement('div')
       out.style.marginTop = '8px'
       block.appendChild(out)
@@ -107,10 +132,10 @@ export default function initManager(doc: Document){
       btn.onclick = async ()=>{
         btn.disabled = true
         const iters = Number(iterationsInput.value)||1
-        const res = await runVariant(entry.wasm!.fn, entry.wasm!.args||[], iters)
+        const res = await runVariant(entry.wasm!.fn, entry.wasm!.args, iters, !!entry.showAllResults)
         addResultRow(name,'wasm',iters,res.total,res.avg)
         const renderer = entry.wasm!.ui?.renderResult || entry.ui?.renderResult
-        if(renderer){ renderer(out, { name, variant: 'wasm', iters, ...res }) }
+        if(renderer){ renderer(out, { name, variant: 'wasm', iters, format: entry.format, ...res }) }
         btn.disabled = false
       }
       block.appendChild(pre)
@@ -140,13 +165,13 @@ export default function initManager(doc: Document){
       runJs.onclick = async ()=>{
         runJs.disabled = true
         const iters = Number(iterationsInput.value)||1
-        const res = await runVariant(entry.js!.fn, entry.js!.args||[], iters)
+        const res = await runVariant(entry.js!.fn, entry.js!.args, iters, !!entry.showAllResults)
         addResultRow(name,'js',iters,res.total,res.avg)
         // attempt to show output using registered output container or live area
         let out = outputContainers.get(`${name}:js`)
         if(!out){ out = ensureLiveOutputArea(); }
         const renderer = entry.js!.ui?.renderResult || entry.ui?.renderResult
-        if(renderer){ renderer(out, { name, variant: 'js', iters, ...res }) }
+        if(renderer){ renderer(out, { name, variant: 'js', iters, format: entry.format, ...res }) }
         runJs.disabled = false
       }
       controls.appendChild(runJs)
@@ -158,12 +183,12 @@ export default function initManager(doc: Document){
       runWasm.onclick = async ()=>{
         runWasm.disabled = true
         const iters = Number(iterationsInput.value)||1
-        const res = await runVariant(entry.wasm!.fn, entry.wasm!.args||[], iters)
+        const res = await runVariant(entry.wasm!.fn, entry.wasm!.args, iters, !!entry.showAllResults)
         addResultRow(name,'wasm',iters,res.total,res.avg)
         let out = outputContainers.get(`${name}:wasm`)
         if(!out){ out = ensureLiveOutputArea(); }
         const renderer = entry.wasm!.ui?.renderResult || entry.ui?.renderResult
-        if(renderer){ renderer(out, { name, variant: 'wasm', iters, ...res }) }
+        if(renderer){ renderer(out, { name, variant: 'wasm', iters, format: entry.format, ...res }) }
         runWasm.disabled = false
       }
       controls.appendChild(runWasm)

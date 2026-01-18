@@ -5,7 +5,7 @@ const entry = {
   description: 'Naive Fibonacci implementation used to demonstrate timing and UI rendering.',
   js: {
     fn: (n: number) => fibJs(n),
-    args: [50],
+    args: () => [20],
     ui: {
       renderResult(container: HTMLElement, result: any){
         container.innerHTML = ''
@@ -17,7 +17,7 @@ const entry = {
   },
   wasm: {
     fn: async (n: number) => fibWasm(n),
-    args: [50],
+    args: [20],
     ui: {
       renderResult(container: HTMLElement, result: any){
         container.innerHTML = ''
@@ -26,7 +26,11 @@ const entry = {
         container.appendChild(r)
       }
     }
-  }
+  },
+  // showAllResults will collect per-iteration timings and pass as `samples` to renderers
+  showAllResults: true,
+  // preferred output format for renderers: 'linechart' | 'barchart' | 'table'
+  format: 'linechart'
 }
 
 export default entry
