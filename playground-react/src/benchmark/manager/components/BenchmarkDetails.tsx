@@ -124,10 +124,14 @@ export function BenchmarkDetails() {
         <div className="space-y-6">
           {displayedBatches.map(batch => (
             <div key={batch.id} className="space-y-4">
-               <div className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <span>Latest Execution Comparison</span>
-                <span className="h-px flex-1 bg-slate-700"></span>
-                <span className="text-[10px] font-mono lowercase">{(batch.js?.iters || batch.wasm?.iters)} iters</span>
+               <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-sm font-black uppercase tracking-tighter text-slate-200">Latest Execution Comparison</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-slate-900 text-[10px] font-mono text-slate-500 border border-slate-700">
+                    {batch.js?.iters || batch.wasm?.iters} Iterations
+                  </span>
+                </div>
+                <div className="h-px flex-1 bg-gradient-to-r from-slate-700 to-transparent mx-4"></div>
               </div>
               
               <BenchmarkChart 

@@ -29,18 +29,21 @@ export async function runVariant(
   const start = performance.now()
   if(collectSamples){
     for(let i=0;i<iterations;i++){
-      // If factory, we re-resolve to catch variability (e.g. random inputs)
-      // but we do it outside the timing of the iteration itself
       const currentArgs = typeof argsOrFactory === 'function' 
         ? await resolveArgs(argsOrFactory) 
         : baseArgs
       
+      // Auto-scaling inner loop for high-precision on fast functions
+      // We run it 10 times and divide if it's likely to be sub-resolution
+      const innerRuns = 10
       const itStart = performance.now()
-      const r = fn(...currentArgs)
-      lastReturn = r instanceof Promise ? await r : r
+      for(let j=0; j<innerRuns; j++) {
+        const r = fn(...currentArgs)
+        lastReturn = r instanceof Promise ? await r : r
+      }
       const itEnd = performance.now()
       
-      samples.push(itEnd - itStart)
+      samples.push((itEnd - itStart) / innerRuns)
       iterationArgs.push(currentArgs)
     }
   } else {
