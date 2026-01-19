@@ -56,13 +56,24 @@ export const useBenchmarkStore = create<BenchmarkState>((set, get) => ({
     const id = `${name}:${v}:${Date.now()}`
     set(state => ({ runs: [{ id, batchId, name, variant: v, status: 'running' }, ...state.runs] }))
     try {
-      const runRes = await runVariant(variant.fn, variant.args, get().iterations, !!entry.showAllResults)
+      const runRes = await runVariant(variant.fn, variant.args, get().iterations, !!entry.showAllResults, !!entry.showOutput)
+      
+      let formattedOutput = undefined
+      if (entry.showOutput && entry.outputFormat && entry.formatOutput && runRes.outputs && runRes.iterationArgs) {
+        const results = runRes.outputs.map((output, i) => ({
+          input: runRes.iterationArgs![i],
+          output
+        }))
+        formattedOutput = entry.formatOutput(results)
+      }
+
       const res: BenchResult = {
         ...runRes,
         name,
         variant: v,
         iters: get().iterations,
-        format: get().formatOverrides[name] || entry.format
+        format: get().formatOverrides[name] || entry.format,
+        formattedOutput
       }
       set(state => ({ runs: state.runs.map(r => r.id === id ? { ...r, status: 'done', res } : r) }))
     } catch (err: unknown) {
@@ -89,16 +100,37 @@ export const useBenchmarkStore = create<BenchmarkState>((set, get) => ({
         entry.js,
         entry.wasm,
         get().iterations,
-        !!entry.showAllResults
+        !!entry.showAllResults,
+        !!entry.showOutput
       )
       
       const format = get().formatOverrides[name] || entry.format
       const updates: Partial<RunRecord>[] = []
+      
+      const processResult = (variantKey: 'js' | 'wasm', runRes: BenchResult) => {
+        let formattedOutput = undefined
+        if (entry.showOutput && entry.outputFormat && entry.formatOutput && runRes.outputs && runRes.iterationArgs) {
+          const results = runRes.outputs.map((output: unknown, i: number) => ({
+            input: runRes.iterationArgs![i],
+            output
+          }))
+          formattedOutput = entry.formatOutput(results)
+        }
+        return { 
+          ...runRes, 
+          name, 
+          variant: variantKey, 
+          iters: get().iterations, 
+          format,
+          formattedOutput 
+        }
+      }
+
       if (results.js) {
-        updates.push({ id: jsId, status: 'done', res: { ...results.js, name, variant: 'js', iters: get().iterations, format } })
+        updates.push({ id: jsId, status: 'done', res: processResult('js', results.js) })
       }
       if (results.wasm) {
-        updates.push({ id: wasmId, status: 'done', res: { ...results.wasm, name, variant: 'wasm', iters: get().iterations, format } })
+        updates.push({ id: wasmId, status: 'done', res: processResult('wasm', results.wasm) })
       }
       
       set(state => ({

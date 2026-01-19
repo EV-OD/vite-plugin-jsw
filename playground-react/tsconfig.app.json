@@ -24,5 +24,13 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+      "include": [
+        "src",
+    "**/*.ts",
+    "**/*.tsw",
+    "vite-env.d.ts"
+  ],
+  "files": [
+  "assembly.d.ts"
+  ],
 }

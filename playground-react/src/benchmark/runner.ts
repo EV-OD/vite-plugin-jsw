@@ -13,7 +13,8 @@ export async function runVariant(
   fn: (...args: any[]) => any, 
   argsOrFactory: ArgsOrFactory | undefined, 
   iterations: number, 
-  collectSamples = false
+  collectSamples = false,
+  collectOutputs = false
 ) {
   const baseArgs = await resolveArgs(argsOrFactory)
   // warmup and capture a sample return value
@@ -25,9 +26,10 @@ export async function runVariant(
 
   const samples: number[] = []
   const iterationArgs: unknown[][] = []
+  const outputs: unknown[] = []
   
   const start = performance.now()
-  if(collectSamples){
+  if(collectSamples || collectOutputs){
     for(let i=0;i<iterations;i++){
       const currentArgs = typeof argsOrFactory === 'function' 
         ? await resolveArgs(argsOrFactory) 
@@ -37,13 +39,16 @@ export async function runVariant(
       // We run it 10 times and divide if it's likely to be sub-resolution
       const innerRuns = 10
       const itStart = performance.now()
+      let itReturn: unknown = undefined
       for(let j=0; j<innerRuns; j++) {
         const r = fn(...currentArgs)
-        lastReturn = r instanceof Promise ? await r : r
+        itReturn = r instanceof Promise ? await r : r
       }
       const itEnd = performance.now()
       
-      samples.push((itEnd - itStart) / innerRuns)
+      lastReturn = itReturn
+      if (collectSamples) samples.push((itEnd - itStart) / innerRuns)
+      if (collectOutputs) outputs.push(itReturn)
       iterationArgs.push(currentArgs)
     }
   } else {
@@ -61,8 +66,9 @@ export async function runVariant(
     avg, 
     lastReturn, 
     samples, 
+    outputs: collectOutputs ? outputs : undefined,
     args: baseArgs,
-    iterationArgs: collectSamples ? iterationArgs : undefined 
+    iterationArgs: (collectSamples || collectOutputs) ? iterationArgs : undefined 
   }
 }
 
@@ -70,16 +76,17 @@ export async function runBoth(
   js: { fn: (...args: any[]) => any, args?: ArgsOrFactory } | undefined,
   wasm: { fn: (...args: any[]) => any, args?: ArgsOrFactory } | undefined,
   iterations: number,
-  collectSamples = false
+  collectSamples = false,
+  collectOutputs = false
 ) {
   const results: { js?: any, wasm?: any } = {}
   
   if (js) {
-    results.js = await runVariant(js.fn, js.args, iterations, collectSamples)
+    results.js = await runVariant(js.fn, js.args, iterations, collectSamples, collectOutputs)
   }
   
   if (wasm) {
-    results.wasm = await runVariant(wasm.fn, wasm.args, iterations, collectSamples)
+    results.wasm = await runVariant(wasm.fn, wasm.args, iterations, collectSamples, collectOutputs)
   }
   
   return results

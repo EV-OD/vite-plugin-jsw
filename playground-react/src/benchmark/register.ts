@@ -11,11 +11,13 @@ export interface BenchResult {
   lastReturn: unknown
   samples: number[]
   iterationArgs?: unknown[][]
+  outputs?: unknown[]
   args?: unknown[]
   name: string
   variant: string
   iters: number
   format?: 'barchart' | 'linechart' | 'table'
+  formattedOutput?: { header: string[], data: unknown[][] }
 }
 
 export type BenchEntry = { 
@@ -24,6 +26,9 @@ export type BenchEntry = {
   ui?: { renderResult?: (container: HTMLElement, result: BenchResult) => void }, 
   description?: string, 
   showAllResults?: boolean, 
+  showOutput?: boolean,
+  outputFormat?: 'table',
+  formatOutput?: (results: { input: unknown[], output: unknown }[]) => { header: string[], data: unknown[][] },
   format?: 'barchart' | 'linechart' | 'table' 
 }
 

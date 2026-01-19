@@ -3,6 +3,7 @@ import { getRegistry } from '../../register'
 import { useBenchmarkStore } from '../../store'
 import { BenchmarkChart } from './Chart'
 import { resolveArgs } from '../../runner'
+import { OutputTable } from './OutputTable'
 
 export function BenchmarkDetails() {
   const selected = useBenchmarkStore(s => s.selected)
@@ -24,9 +25,6 @@ export function BenchmarkDetails() {
 
   const currentFormat = selected ? (formatOverrides[selected] || entry?.format || 'barchart') : 'barchart'
 
-  const groupJs = useBenchmarkStore(s => s.groupState[`${selected}:js`]);
-  const groupWasm = useBenchmarkStore(s => s.groupState[`${selected}:wasm`]);
-
   if (!selected || !entry) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-slate-500 p-8 border-2 border-dashed border-slate-800 rounded-xl bg-slate-900/50">
@@ -41,9 +39,9 @@ export function BenchmarkDetails() {
 
   // Find runs for this benchmark and group by batch
   const batchMap = runs.filter(r => r.name === selected && r.status === 'done').reduce((acc, r) => {
-    if (!acc[r.batchId]) acc[r.batchId] = { id: r.batchId, js: null as any, wasm: null as any, timestamp: parseInt(r.id.split(':').pop()!) }
-    if (r.variant === 'js') acc[r.batchId].js = r.res
-    if (r.variant === 'wasm') acc[r.batchId].wasm = r.res
+    if (!acc[r.batchId]) acc[r.batchId] = { id: r.batchId, js: null, wasm: null, timestamp: parseInt(r.id.split(':').pop()!) }
+    if (r.variant === 'js') acc[r.batchId].js = r.res || null
+    if (r.variant === 'wasm') acc[r.batchId].wasm = r.res || null
     return acc
   }, {} as Record<string, { id: string, js: any, wasm: any, timestamp: number }>)
 
@@ -131,7 +129,7 @@ export function BenchmarkDetails() {
                     {batch.js?.iters || batch.wasm?.iters} Iterations
                   </span>
                 </div>
-                <div className="h-px flex-1 bg-gradient-to-r from-slate-700 to-transparent mx-4"></div>
+                <div className="h-px flex-1 bg-linear-to-r from-slate-700 to-transparent mx-4"></div>
               </div>
               
               <BenchmarkChart 
@@ -140,6 +138,15 @@ export function BenchmarkDetails() {
                   ...(batch.wasm ? [{ ...batch.wasm, color: 'text-emerald-500', fill: 'bg-emerald-500' }] : [])
                 ]} 
               />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {batch.js?.formattedOutput && (
+                  <OutputTable formattedOutput={batch.js.formattedOutput} variant="js" />
+                )}
+                {batch.wasm?.formattedOutput && (
+                  <OutputTable formattedOutput={batch.wasm.formattedOutput} variant="wasm" />
+                )}
+              </div>
             </div>
           ))}
 
