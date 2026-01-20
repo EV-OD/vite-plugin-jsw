@@ -1,4 +1,4 @@
-# vite-plugin-jsw
+# @jsw/vite-plugin-jsw
 
 A Vite plugin that compiles AssemblyScript/JSW modules and generates the JavaScript/wasm glue required to run them in the browser (integration examples use `as-bind`).
 
@@ -19,9 +19,15 @@ A Vite plugin that compiles AssemblyScript/JSW modules and generates the JavaScr
 - Build the plugin bundle: `npm run build` (see `package.json`).
 - Watch mode for iterative development: `npm run dev`.
 
-## Playground
+## Usage
 
-See the `playground/` folder for a minimal example and quick experimentation; it demonstrates the compiled wasm + glue running in the browser.
+```typescript
+import jsw from '@jsw/vite-plugin-jsw'
+
+export default {
+  plugins: [jsw()]
+}
+```
 
 ## Project layout
 
@@ -51,11 +57,27 @@ pnpm add -D /path/to/vite-plugin-jsw
 
 # with npm
 npm install --save-dev /path/to/vite-plugin-jsw
-
-# use `npm link` or `pnpm link` for live development across packages
 ```
 
-Or use the `playground/` folder directly when experimenting locally — it consumes the built plugin output.
+## Release and Versioning
+
+This project uses `standard-version` for automated versioning and changelog management.
+
+```bash
+# Create a patch release (1.0.1)
+npm run release:patch
+
+# Create a minor release (1.1.0)
+npm run release:minor
+
+# Create a major release (2.0.0)
+npm run release:major
+```
+
+These commands will:
+1. Update the version in `package.json`.
+2. Generate/update `CHANGELOG.md`.
+3. Create a git tag for the version.
 
 ## License
 

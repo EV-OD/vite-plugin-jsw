@@ -12,7 +12,7 @@
     "isolatedModules": true,       // Required for bundlers like esbuild/tsup
     // "types": ["vite-plugin-jsw/globals"]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "globals.d.ts"],
   "exclude": [
     "node_modules",
     "**/*.tsw" 

@@ -1,4 +1,4 @@
-import jsw from "vite-plugin-jsw"
+import jsw from "@jsw/vite-plugin-jsw"
 
 export default { 
     plugins: [jsw()],

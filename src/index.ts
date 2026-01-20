@@ -13,7 +13,7 @@ export default function jswPlugin(): Plugin {
   let transformPath: string;
 
   return {
-    name: 'vite-plugin-jsw',
+    name: '@jsw/vite-plugin-jsw',
     enforce: 'pre',
 
     configResolved(config) {
@@ -26,14 +26,18 @@ export default function jswPlugin(): Plugin {
       transformPath = join(tempFolder, 'indexCastTransform.mjs');
 
       // Read the original from the plugin and write it to the playground's local temp
-      const sourcePath = resolve(__dirname, '../public/indexCastTransform.mjs');
+      const sourcePath = resolve(__dirname, existsSync(join(__dirname, '../public/indexCastTransform.mjs')) 
+        ? '../public/indexCastTransform.mjs' 
+        : './indexCastTransform.mjs');
       const code = readFileSync(sourcePath, 'utf-8');
       writeFileSync(transformPath, code);
     },
 
     async buildStart() {
       if (!this.meta.watchMode) { 
-        const sourcePath = resolve(__dirname, '../public/indexCastTransform.mjs');
+        const sourcePath = resolve(__dirname, existsSync(join(__dirname, '../public/indexCastTransform.mjs')) 
+          ? '../public/indexCastTransform.mjs' 
+          : './indexCastTransform.mjs');
         const transformCode = readFileSync(sourcePath, 'utf-8');
 
         this.emitFile({

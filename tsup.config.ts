@@ -7,12 +7,7 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
+  shims: true,
   external: ['assemblyscript','typescript', 'fs', 'path', 'os', 'crypto'], 
   platform: 'node',
-  banner: {
-    js: `
-      import { createRequire } from 'module';
-      const require = createRequire(import.meta.url);
-    `,
-  },
 });
