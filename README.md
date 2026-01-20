@@ -1,6 +1,6 @@
 # @allwcons/vite-plugin-jsw
 
-A Vite plugin that compiles AssemblyScript/JSW modules and generates the JavaScript/wasm glue required to run them in the browser (integration examples use `as-bind`).
+A Vite plugin that compiles AssemblyScript/JSW modules and generates the JavaScript/wasm glue required to run them in the browser.
 
 ## What it is
 
@@ -11,7 +11,7 @@ A Vite plugin that compiles AssemblyScript/JSW modules and generates the JavaScr
 
 - Source discovery: plugin watches and collects AssemblyScript/JSW sources in your project.
 - Compilation: on build (or on change during dev) the plugin runs the AssemblyScript compilation step to emit a `.wasm` and associated JS glue.
-- Glue generation: the plugin emits helper code that instantiates the wasm and exposes typed bindings; the project uses `as-bind`-style helpers to marshal arguments and memory.
+- Glue generation: the plugin emits helper code that instantiates the wasm and exposes typed bindings;.
 - Vite integration: artifacts are emitted into the plugin's output (served by the dev server during `dev`, bundled during `build`). The plugin triggers rebuilds on source changes so the dev server reloads with the new module.
 
 ## Development
@@ -37,7 +37,7 @@ export default {
 
 ## Notes
 
-- This project uses AssemblyScript and `as-bind` (see `devDependencies` / `dependencies` in `package.json`).
+- This project uses AssemblyScript (see `devDependencies` / `dependencies` in `package.json`).
 
 ## Publishing status
 
