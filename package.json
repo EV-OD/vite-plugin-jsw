@@ -4,8 +4,8 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsup --watch --onSuccess \"cp public/indexCastTransform.cjs dist/\"",
-    "build": "tsup && cp public/indexCastTransform.cjs dist/",
+    "dev": "tsup --watch --onSuccess \"cp public/indexCastTransform.mjs dist/\"",
+    "build": "tsup && cp public/indexCastTransform.mjs dist/",
     "release": "npm run build && npm publish"
   },
   "keywords": [],

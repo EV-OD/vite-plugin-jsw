@@ -23,22 +23,22 @@ export default function jswPlugin(): Plugin {
       const tempFolder = join(projectRoot, 'node_modules', '.jsw');
       if (!existsSync(tempFolder)) mkdirSync(tempFolder, { recursive: true });
 
-      transformPath = join(tempFolder, 'indexCastTransform.cjs');
+      transformPath = join(tempFolder, 'indexCastTransform.mjs');
 
       // Read the original from the plugin and write it to the playground's local temp
-      const sourcePath = resolve(__dirname, '../public/indexCastTransform.cjs');
+      const sourcePath = resolve(__dirname, '../public/indexCastTransform.mjs');
       const code = readFileSync(sourcePath, 'utf-8');
       writeFileSync(transformPath, code);
     },
 
     async buildStart() {
       if (!this.meta.watchMode) { 
-        const sourcePath = resolve(__dirname, '../public/indexCastTransform.cjs');
+        const sourcePath = resolve(__dirname, '../public/indexCastTransform.mjs');
         const transformCode = readFileSync(sourcePath, 'utf-8');
 
         this.emitFile({
           type: 'asset',
-          fileName: 'indexCastTransform.cjs', // Change extension here
+          fileName: 'indexCastTransform.mjs', // Change extension here
           source: transformCode
         });
       }
