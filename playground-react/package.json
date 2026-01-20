@@ -15,7 +15,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwindcss": "^4.1.18",
-    "@jsw/vite-plugin-jsw": "workspace:*",
+    "@allwcons/vite-plugin-jsw": "workspace:*",
     "zustand": "^5.0.10"
   },
   "devDependencies": {

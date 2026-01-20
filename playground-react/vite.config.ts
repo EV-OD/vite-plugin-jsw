@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
-import jsw from "@jsw/vite-plugin-jsw"
+import jsw from "@allwcons/vite-plugin-jsw"
 
 
 

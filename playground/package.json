@@ -18,7 +18,7 @@
     "@assemblyscript/loader": "^0.28.9",
     "as-bind": "^0.8.2",
     "chart.js": "^4.5.1",
-    "@jsw/vite-plugin-jsw": "workspace:*"
+    "@allwcons/vite-plugin-jsw": "workspace:*"
   },
   "devDependencies": {
     "assemblyscript": "^0.28.9"

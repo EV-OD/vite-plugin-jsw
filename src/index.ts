@@ -13,7 +13,7 @@ export default function jswPlugin(): Plugin {
   let transformPath: string;
 
   return {
-    name: '@jsw/vite-plugin-jsw',
+    name: '@allwcons/vite-plugin-jsw',
     enforce: 'pre',
 
     configResolved(config) {

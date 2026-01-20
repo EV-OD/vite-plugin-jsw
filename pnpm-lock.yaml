@@ -32,7 +32,7 @@ importers:
       '@assemblyscript/loader':
         specifier: ^0.28.9
         version: 0.28.9
-      '@jsw/vite-plugin-jsw':
+      '@allwcons/vite-plugin-jsw':
         specifier: workspace:*
         version: link:..
       as-bind:
@@ -48,7 +48,7 @@ importers:
 
   playground-react:
     dependencies:
-      '@jsw/vite-plugin-jsw':
+      '@allwcons/vite-plugin-jsw':
         specifier: workspace:*
         version: link:..
       '@tailwindcss/vite':

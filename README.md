@@ -1,4 +1,4 @@
-# @jsw/vite-plugin-jsw
+# @allwcons/vite-plugin-jsw
 
 A Vite plugin that compiles AssemblyScript/JSW modules and generates the JavaScript/wasm glue required to run them in the browser (integration examples use `as-bind`).
 
@@ -22,7 +22,7 @@ A Vite plugin that compiles AssemblyScript/JSW modules and generates the JavaScr
 ## Usage
 
 ```typescript
-import jsw from '@jsw/vite-plugin-jsw'
+import jsw from '@allwcons/vite-plugin-jsw'
 
 export default {
   plugins: [jsw()]
