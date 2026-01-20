@@ -1,83 +1,113 @@
 # @allwcons/vite-plugin-jsw
 
-A Vite plugin that compiles AssemblyScript/JSW modules and generates the JavaScript/wasm glue required to run them in the browser.
+A Vite plugin that enables high-performance WebAssembly compilation from TypeScript-like syntax using the `"use wasm"` directive. It automatically bridges the gap between JavaScript's dynamic typing and AssemblyScript's strict typing.
 
-## What it is
+## Key Features
 
-- A Vite plugin that automates the build steps for AssemblyScript modules so they can be consumed from regular web code.
-- Produces the WebAssembly binary and lightweight runtime glue that wires exports and memory access to JavaScript callers.
+- **Direct In-JS Compilation**: Mark any `.ts`, `.jsw`, or `.tsw` file with `"use wasm"` to compile it to WebAssembly seamlessly.
+- **Type Inference & Resolution**: Automatically injects return types and infers variable types using the TypeScript Compiler API, allowing you to write cleaner code that remains compatible with AssemblyScript.
+- **Auto-i32 Index Casting**: Automatically wraps array indices in `i32()` to prevent common AssemblyScript compilation errors when using `f64` (default `number`) as an index.
+- **Zero Configuration**: No complex `asconfig.json` setup required for individual modules; the plugin handles the compilation and glue generation (via `as-bind`) for you.
+- **Self-Contained Output**: The plugin bundles the WebAssembly binary as a base64 string directly within the JavaScript glue, eliminating the need for separate `.wasm` file loading logic.
 
-## How it works
+## Installation
 
-- Source discovery: plugin watches and collects AssemblyScript/JSW sources in your project.
-- Compilation: on build (or on change during dev) the plugin runs the AssemblyScript compilation step to emit a `.wasm` and associated JS glue.
-- Glue generation: the plugin emits helper code that instantiates the wasm and exposes typed bindings;.
-- Vite integration: artifacts are emitted into the plugin's output (served by the dev server during `dev`, bundled during `build`). The plugin triggers rebuilds on source changes so the dev server reloads with the new module.
+```bash
+# pnpm
+pnpm add -D @allwcons/vite-plugin-jsw assemblyscript
 
-## Development
+# npm
+npm install --save-dev @allwcons/vite-plugin-jsw assemblyscript
+```
 
-- Build the plugin bundle: `npm run build` (see `package.json`).
-- Watch mode for iterative development: `npm run dev`.
+## Setup
+
+Add the plugin to your `vite.config.ts`:
+
+```typescript
+import { defineConfig } from 'vite';
+import jsw from '@allwcons/vite-plugin-jsw';
+
+export default defineConfig({
+  plugins: [jsw()],
+});
+```
+
+To take full advantage of AssemblyScript types in your IDE, include the global definitions in your `tsconfig.json` or `vite-env.d.ts`:
+
+```typescript
+// vite-env.d.ts
+/// <reference types="@allwcons/vite-plugin-jsw/globals" />
+```
 
 ## Usage
 
-```typescript
-import jsw from '@allwcons/vite-plugin-jsw'
+### The `"use wasm"` Directive
 
-export default {
-  plugins: [jsw()]
+Simply add `"use wasm"` at the top of your file. The plugin will intercept the file, resolve implicit types, compile it to WASM, and return a JavaScript module with matched bindings.
+
+```typescript
+// math.ts
+"use wasm";
+
+export function fib(n: number): number {
+  if (n <= 1) return n;
+  return fib(n - 1) + fib(n - 2);
+}
+
+export function heavyMath(arr: Float64Array): void {
+  for (let i = 0; i < arr.length; i++) {
+    // Note: 'i' is treated as f64 (number) by default, 
+    // but the plugin automatically casts it to i32 for array access.
+    arr[i] = Math.sqrt(arr[i]) * 2.0;
+  }
 }
 ```
 
-## Project layout
+### Type Mapping
 
-- `src/` — plugin source; primary entry is `src/index.ts` (see `src/compiler.ts`, `src/glue.ts`).
-- `playground/` — example app and quick tests.
-- `package.json` — build scripts (`dev`, `build`, `release`).
+The plugin provides a Type Resolver that maps standard TypeScript types to their AssemblyScript counterparts:
+- `number` $\rightarrow$ `f64` (default)
+- `boolean` $\rightarrow$ `bool`
+- Full support for TypedArrays: `Float64Array`, `Float32Array`, `Int32Array`, etc.
 
-## Notes
+### Automatic Enhancements
 
-- This project uses AssemblyScript (see `devDependencies` / `dependencies` in `package.json`).
+The plugin performs several AST-level transformations to ensure your code runs optimally in WASM without requiring verbose manual casting:
 
-## Publishing status
+1. **Return Type Injection**: 
+   ```typescript
+   function add(a: f64, b: f64) { return a + b; }
+   // Becomes: function add(a: f64, b: f64): f64 { return a + b; }
+   ```
 
-- Not published to npm yet.
+2. **Variable Inference**:
+   ```typescript
+   let x = 1.5;
+   // Becomes: let x: f64 = 1.5;
+   ```
 
-## License
+3. **Index Casting**:
+   ```typescript
+   let value = myArr[i]; // where i is f64
+   // Becomes: let value = myArr[i32(i)];
+   ```
 
-ISC
+## Development & Release
 
-## Local installation
-
-- Install directly from the repository folder (recommended for local testing):
-
-```bash
-# with pnpm
-pnpm add -D /path/to/vite-plugin-jsw
-
-# with npm
-npm install --save-dev /path/to/vite-plugin-jsw
-```
-
-## Release and Versioning
-
+### Semantic Versioning
 This project uses `standard-version` for automated versioning and changelog management.
 
 ```bash
-# Create a patch release (1.0.1)
+# Patch release (1.0.x)
 npm run release:patch
 
-# Create a minor release (1.1.0)
+# Minor release (1.x.0)
 npm run release:minor
 
-# Create a major release (2.0.0)
+# Major release (x.0.0)
 npm run release:major
 ```
-
-These commands will:
-1. Update the version in `package.json`.
-2. Generate/update `CHANGELOG.md`.
-3. Create a git tag for the version.
 
 ## License
 
