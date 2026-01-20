@@ -1,28 +1,63 @@
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve, join } from 'node:path';
 import type { Plugin } from 'vite';
 import { compileAs } from './compiler'; 
 import { generateGlue } from './glue';
+import { resolveImplicitTypes } from './typeResolver'; 
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default function jswPlugin(): Plugin {
+  let transformPath: string;
+
   return {
     name: 'vite-plugin-jsw',
-    enforce: 'pre', // Ensures we run before standard JS transpilation
+    enforce: 'pre',
+
+    configResolved(config) {
+      // Instead of resolving to the plugin folder, let's resolve to the current project's temp dir
+      // This makes the path relative to the playground-react project
+      const projectRoot = config.root; 
+      const tempFolder = join(projectRoot, 'node_modules', '.jsw');
+      if (!existsSync(tempFolder)) mkdirSync(tempFolder, { recursive: true });
+
+      transformPath = join(tempFolder, 'indexCastTransform.cjs');
+
+      // Read the original from the plugin and write it to the playground's local temp
+      const sourcePath = resolve(__dirname, '../public/indexCastTransform.cjs');
+      const code = readFileSync(sourcePath, 'utf-8');
+      writeFileSync(transformPath, code);
+    },
+
+    async buildStart() {
+      if (!this.meta.watchMode) { 
+        const sourcePath = resolve(__dirname, '../public/indexCastTransform.cjs');
+        const transformCode = readFileSync(sourcePath, 'utf-8');
+
+        this.emitFile({
+          type: 'asset',
+          fileName: 'indexCastTransform.cjs', // Change extension here
+          source: transformCode
+        });
+      }
+    },
 
     async transform(code, id) {
-      // Check for the "use wasm" directive
-    const hasUseWasmDirective = code.includes('"use wasm"') || code.includes("'use wasm'");
-    const isWasmFile = id.endsWith('.jsw') || id.endsWith('.tsw') || id.endsWith('.ts');
-    // console.log(hasUseWasmDirective, isWasmFile)
-    if (!hasUseWasmDirective || !isWasmFile) {
-        // console.log(`skipping non-TSW/JSW file: ${id}`);
-        return null;
-    }
+      const hasUseWasmDirective = code.includes('"use wasm"') || code.includes("'use wasm'");
+      const isWasmFile = id.endsWith('.jsw') || id.endsWith('.tsw') || id.endsWith('.ts');
 
-      // 1. Convert JS/AS code to WASM binary
-      const { wasm, glue } = await compileAs(code);
-      console.log(`Compiled ${id} to WASM, size: ${wasm.length} bytes`);
+      if (!hasUseWasmDirective || !isWasmFile) return null;
+
+      // 1. Use TypeScript to resolve f64/i32/any types
+      const strictCode = resolveImplicitTypes(code, id);
+      
+      // 2. Compile using the absolute path to the transform
+      const { wasm, glue } = await compileAs(strictCode, transformPath);
+      
       const finalCode = generateGlue(wasm, glue);
       
-      // 2. Wrap in Glue Code
       return {
         code: finalCode,
         map: null

@@ -1,25 +1,27 @@
 import { mkdtemp, writeFile, readFile, rm } from 'fs/promises';
 import { tmpdir } from 'os';
-import { join } from 'path';
 import { promisify } from 'util';
 import { execFile as _execFile } from 'child_process';
+import { join, resolve, dirname } from 'path'; 
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const execFile = promisify(_execFile);
 
 const isProd = process.env.NODE_ENV === 'production';
 
-export async function compileAs(code: string) {
+export async function compileAs(code: string, transformPath: string) {
   let tmp;
-  // if (isProd){
+
   tmp = await mkdtemp(join(tmpdir(), 'as-'));
-  // }else{
-  //   // create actual dir for testing
-  //   tmp = join(process.cwd(), 'tmp');
-  // }
+
 
   const srcPath = join(tmp, 'module.ts');
   const outPath = join(tmp, 'module.wasm');
   const jsGluePath = join(tmp, 'module.js');
+
 
   await writeFile(srcPath, code, 'utf8');
 
@@ -31,7 +33,9 @@ export async function compileAs(code: string) {
     "-O3",
     "--runtime", "stub",
     "--bindings", "esm",      
+    "--transform", transformPath,
   ];
+  console.log(args)
 
   if (!isProd) {
     args.push("--textFile", "module.wat");
@@ -44,11 +48,8 @@ export async function compileAs(code: string) {
     const wasmBuf = await readFile(outPath);
     const jsGlue = await readFile(jsGluePath, 'utf8');
 
-    // if (isProd){
     await rm(tmp, { recursive: true, force: true });
-    // }else{
-      // in dev mode, keep tmp files for inspection
-    // }
+
 
     return {
       wasm: new Uint8Array(wasmBuf),
