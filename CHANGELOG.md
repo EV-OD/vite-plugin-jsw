@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.1](https://github.com/EV-OD/vite-plugin-jsw/compare/v2.0.0...v2.0.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* update package name references from @jsw/vite-plugin-jsw to @allwcons/vite-plugin-jsw ([908282f](https://github.com/EV-OD/vite-plugin-jsw/commit/908282f7576995f8cc891931df69d1ebd809f083))
+
 ## [2.0.0](https://github.com/EV-OD/vite-plugin-jsw/compare/v1.0.0...v2.0.0) (2026-01-20)
 
 ## 1.0.0 (2026-01-20)

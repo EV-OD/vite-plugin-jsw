@@ -1,6 +1,6 @@
 {
   "name": "@allwcons/vite-plugin-jsw",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Vite plugin for JSW (JavaScript WebAssembly) compilation and integration",
   "publishConfig": {
     "access": "public"
