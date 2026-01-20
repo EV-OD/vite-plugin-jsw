@@ -1,18 +1,11 @@
 {
-  "name": "vite-plugin-jsw",
-  "version": "1.0.0",
-  "description": "",
-  "main": "dist/index.js",
-  "scripts": {
-    "dev": "tsup --watch --onSuccess \"cp public/indexCastTransform.mjs dist/\"",
-    "build": "tsup && cp public/indexCastTransform.mjs dist/",
-    "release": "npm run build && npm publish"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "name": "@jsw/vite-plugin-jsw",
+  "version": "2.0.0",
+  "description": "Vite plugin for JSW (JavaScript WebAssembly) compilation and integration",
   "type": "module",
-  "types": "./dist/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -23,14 +16,41 @@
   },
   "files": [
     "dist",
-    "globals.d.ts"
+    "globals.d.ts",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
-  "dependencies": {
-    "as-bind": "^0.8.2"
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "tsup --watch --onSuccess \"cp public/indexCastTransform.mjs dist/\"",
+    "build": "tsup && cp public/indexCastTransform.mjs dist/",
+    "lint": "tsc --noEmit",
+    "release": "standard-version",
+    "release:patch": "standard-version --release-as patch",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "vite-plugin",
+    "assemblyscript",
+    "wasm",
+    "jsw",
+    "webassembly"
+  ],
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "assemblyscript": ">=0.28.0",
+    "vite": ">=5.0.0"
   },
   "devDependencies": {
     "@types/node": "^25.0.5",
     "assemblyscript": "^0.28.9",
+    "standard-version": "^9.5.0",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
