@@ -25,13 +25,13 @@ class MyTransform extends Transform {
   }
   afterParse(parser) {
     this.log("Running MyTransform afterParse");
-
     const visit = (node) => {
       if (!node || typeof node !== 'object') return;
 
       // 1. Handle ElementAccess (e.g., array[index])
       if (node.kind === NodeKind.ElementAccess) {
         this.log("Found ElementAccess node, modifying index expression.");
+        this.log(`Original node: ${node.toString()}`);
         
         const indexExpr = node.elementExpression;
 

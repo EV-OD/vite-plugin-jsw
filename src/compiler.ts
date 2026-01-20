@@ -12,7 +12,7 @@ const execFile = promisify(_execFile);
 
 const isProd = process.env.NODE_ENV === 'production';
 
-export async function compileAs(code: string, transformPath: string) {
+export async function compileAs(code: string, transformPath: string, filename_without_ext:string) {
   let tmp;
 
   tmp = await mkdtemp(join(tmpdir(), 'as-'));
@@ -35,10 +35,9 @@ export async function compileAs(code: string, transformPath: string) {
     "--bindings", "esm",      
     "--transform", transformPath,
   ];
-  console.log(args)
 
   if (!isProd) {
-    args.push("--textFile", "module.wat");
+    args.push("--textFile", `${filename_without_ext}.wat`);
   }
   try {
     // Run the compiler

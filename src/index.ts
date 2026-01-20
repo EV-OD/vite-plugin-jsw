@@ -47,14 +47,16 @@ export default function jswPlugin(): Plugin {
     async transform(code, id) {
       const hasUseWasmDirective = code.includes('"use wasm"') || code.includes("'use wasm'");
       const isWasmFile = id.endsWith('.jsw') || id.endsWith('.tsw') || id.endsWith('.ts');
+      const filename_without_ext = id.replace(/\.(jsw|tsw|ts)$/, '');
 
       if (!hasUseWasmDirective || !isWasmFile) return null;
 
       // 1. Use TypeScript to resolve f64/i32/any types
       const strictCode = resolveImplicitTypes(code, id);
+      console.log(strictCode);
       
       // 2. Compile using the absolute path to the transform
-      const { wasm, glue } = await compileAs(strictCode, transformPath);
+      const { wasm, glue } = await compileAs(strictCode, transformPath, filename_without_ext);
       
       const finalCode = generateGlue(wasm, glue);
       
