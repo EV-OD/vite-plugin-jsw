@@ -2,22 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [2.0.1](https://github.com/EV-OD/vite-plugin-jsw/compare/v2.0.0...v2.0.1) (2026-01-20)
-
-
-### Bug Fixes
-
-* update package name references from @jsw/vite-plugin-jsw to @allwcons/vite-plugin-jsw ([908282f](https://github.com/EV-OD/vite-plugin-jsw/commit/908282f7576995f8cc891931df69d1ebd809f083))
-
-## [2.0.0](https://github.com/EV-OD/vite-plugin-jsw/compare/v1.0.0...v2.0.0) (2026-01-20)
-
-## 1.0.0 (2026-01-20)
-
+## 0.1.1 (2026-01-20)
 
 ### Features
-
-* Add CONTRIBUTING.md to guide new contributors ([97a141c](https://github.com/EV-OD/vite-plugin-jsw/commit/97a141c0dc90036f437207931f5d64e22c9506ad))
-* add Fibonacci WebAssembly function and benchmark registration ([eb4438c](https://github.com/EV-OD/vite-plugin-jsw/commit/eb4438c16f16ff9291f36bdb5aab3ac476849d3f))
+* Initial release of `@allwcons/vite-plugin-jsw` with `"use wasm"` support, type inference, and auto-i32 casting.
 * add neural network benchmark with training functions and output table; enhance App and BenchmarkDetails components ([7444462](https://github.com/EV-OD/vite-plugin-jsw/commit/7444462eb90403b03fbb7841961abf4189b30d87))
 * add playground-react components for benchmark management and visualization ([5626eb6](https://github.com/EV-OD/vite-plugin-jsw/commit/5626eb6f43ba13598e639abcf253878819ce7eee))
 * Add README.md with project overview and usage instructions ([c674f7d](https://github.com/EV-OD/vite-plugin-jsw/commit/c674f7d98f7dffa2b8b9968fcde3af2dcbf03e9e))
