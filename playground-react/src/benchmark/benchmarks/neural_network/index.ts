@@ -37,7 +37,7 @@ function generateData(count: number) {
   return { flatData, labels };
 }
 
-const data = generateData(300);
+const data = generateData(10);
 
 const argsData = () => {
   return [data.flatData, data.labels, 2, 0.1, 50];

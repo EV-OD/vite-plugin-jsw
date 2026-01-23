@@ -11,6 +11,7 @@ interface ChartProps {
 }
 
 export function BenchmarkChart({ results }: ChartProps) {
+  console.log('BenchmarkChart results:', results)
   const [inspectIndex, setInspectIndex] = useState<number | null>(null)
   const [hoverIndex, setHoverIndex] = useState<number | null>(null)
   
@@ -181,7 +182,9 @@ export function BenchmarkChart({ results }: ChartProps) {
           
           <g transform={`translate(${margin.left}, ${margin.top})`}>
             {format === 'linechart' ? (
-              results.map((r, ri) => (
+              results.map((r, ri) => {
+                console.log('Rendering line for result:', r)
+                return (
                 <polyline
                   key={ri}
                   points={(r.samples || [])
@@ -198,7 +201,8 @@ export function BenchmarkChart({ results }: ChartProps) {
                   strokeLinejoin="round"
                   className={`${r.color} drop-shadow-[0_0_8px_rgba(0,0,0,0.5)]`}
                 />
-              ))
+                  )
+})
             ) : (
               results.map((r, ri) => {
                 const barGroupW = chartW / maxSamples

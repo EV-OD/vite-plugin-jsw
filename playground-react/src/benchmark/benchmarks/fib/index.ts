@@ -34,7 +34,19 @@ const entry: BenchEntry = {
   // showAllResults will collect per-iteration timings and pass as `samples` to renderers
   showAllResults: true,
   // preferred output format for renderers: 'linechart' | 'barchart' | 'table'
-  format: 'linechart'
+  format: 'linechart',
+  showOutput: true,
+  outputFormat: 'table',
+  formatOutput: (results) => {
+    return {
+      header: ['Input N', 'Fibonacci(N)'],
+      data: results.map(r => {
+        const input = r.input as [number];
+        const output = r.output as number;
+        return [input[0], output];
+      })
+    }
+  }
 }
 
 register('Fibonacci', entry);

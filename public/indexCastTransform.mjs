@@ -15,13 +15,34 @@ import { ClassPrototype, IdentifierExpression ,  DecoratorNode,
   NamedTypeNode,
   Range,
   util,} from "assemblyscript"
+import { writeFileSync, existsSync, mkdirSync } from "fs"
+import { dirname, resolve, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+
 import * as AS from "assemblyscript"
 import { Transform } from "assemblyscript/transform"
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 console.log("DEBUG: Transform file is being loaded by Node");
 class MyTransform extends Transform {
   afterInitialize(Program){
     this.log("Running MyTransform afterInitialize");
     this.log(`Program has ${Program.sources} sources.`);
+    for (const source of Program.sources) {
+      // Avoid modifying the standard library
+      if (!source.internalPath.startsWith("~lib/")) {
+            // save it as .asm.exclude.ts
+          let filename = Math.random().toString(36).substring(2, 15) + source.internalPath.replace(/^~?/, './').replace(/\//g, '_') + '.asm.exclude.ts';
+          let path = resolve(__dirname, '../../dev_transform_outputs');
+          if (!existsSync(path)) {
+            mkdirSync(path, { recursive: true });
+          }
+          filename = join(path, filename);
+          writeFileSync(filename, source.text, 'utf-8');
+          this.log(`Saved source to ${filename}`);
+      }
+    }
   }
   afterParse(parser) {
     this.log("Running MyTransform afterParse");
@@ -76,6 +97,7 @@ class MyTransform extends Transform {
         visit(source);
       }
     }
+    
   }
 }
 

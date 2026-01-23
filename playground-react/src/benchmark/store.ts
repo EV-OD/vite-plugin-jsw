@@ -32,7 +32,7 @@ type BenchmarkState = {
 
 export const useBenchmarkStore = create<BenchmarkState>((set, get) => ({
   selected: null,
-  iterations: 1,
+  iterations: 10,
   runs: [],
   groupState: {},
   formatOverrides: {},

@@ -8,6 +8,7 @@ import { resolveImplicitTypes } from './typeResolver';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const isProd = process.env.NODE_ENV === 'production';
 
 export default function jswPlugin(): Plugin {
   let transformPath: string;
@@ -52,12 +53,20 @@ export default function jswPlugin(): Plugin {
       const hasUseWasmDirective = code.includes('"use wasm"') || code.includes("'use wasm'");
       const isWasmFile = id.endsWith('.jsw') || id.endsWith('.tsw') || id.endsWith('.ts');
       const filename_without_ext = id.replace(/\.(jsw|tsw|ts)$/, '');
+      // *.exclude.(ts, tsw, jsw) files are compiled as normal TS/JS files
+      const is_exclude = id.endsWith('.exclude.ts') || id.endsWith('.exclude.jsw') || id.endsWith('.exclude.tsw');
+      if (is_exclude) return null;
 
       if (!hasUseWasmDirective || !isWasmFile) return null;
 
-      // 1. Use TypeScript to resolve f64/i32/any types
+      // // 1. Use TypeScript to resolve f64/i32/any types
       const strictCode = resolveImplicitTypes(code, id);
-      console.log(strictCode);
+      // in dev mode write this strictCode in .ts file
+      if (!isProd) {
+        const devOutPath = filename_without_ext + '.exclude.ts';
+        writeFileSync(devOutPath, strictCode, 'utf-8');
+      }
+      // console.log(strictCode);
       
       // 2. Compile using the absolute path to the transform
       const { wasm, glue } = await compileAs(strictCode, transformPath, filename_without_ext);

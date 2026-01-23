@@ -17,6 +17,14 @@ export async function runVariant(
   collectOutputs = false
 ) {
   const baseArgs = await resolveArgs(argsOrFactory)
+
+  // safe clone helper prefers structuredClone when available
+  const safeClone = (v: unknown) => {
+    // @ts-ignore
+    if (typeof (globalThis as any).structuredClone === 'function') return (globalThis as any).structuredClone(v)
+    try { return JSON.parse(JSON.stringify(v)) } catch { return v }
+  }
+
   // warmup and capture a sample return value
   let lastReturn: unknown = undefined
   for(let i=0;i<10;i++){
@@ -34,10 +42,11 @@ export async function runVariant(
       const currentArgs = typeof argsOrFactory === 'function' 
         ? await resolveArgs(argsOrFactory) 
         : baseArgs
+      console.log(currentArgs)
       
       // Auto-scaling inner loop for high-precision on fast functions
       // We run it 10 times and divide if it's likely to be sub-resolution
-      const innerRuns = 10
+      const innerRuns = 1
       const itStart = performance.now()
       let itReturn: unknown = undefined
       for(let j=0; j<innerRuns; j++) {
@@ -48,8 +57,8 @@ export async function runVariant(
       
       lastReturn = itReturn
       if (collectSamples) samples.push((itEnd - itStart) / innerRuns)
-      if (collectOutputs) outputs.push(itReturn)
-      iterationArgs.push(currentArgs)
+      if (collectOutputs) outputs.push(safeClone(itReturn))
+      iterationArgs.push(safeClone(currentArgs))
     }
   } else {
     for(let i=0;i<iterations;i++){
@@ -60,6 +69,7 @@ export async function runVariant(
   const end = performance.now()
   const total = end - start
   const avg = total / iterations
+  console.log(samples ,fn)
   
   return { 
     total, 
@@ -67,7 +77,7 @@ export async function runVariant(
     lastReturn, 
     samples, 
     outputs: collectOutputs ? outputs : undefined,
-    args: baseArgs,
+    args: safeClone(baseArgs),
     iterationArgs: (collectSamples || collectOutputs) ? iterationArgs : undefined 
   }
 }
