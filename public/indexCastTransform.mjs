@@ -74,7 +74,7 @@ class MyTransform extends Transform {
     };
 
     for (const source of parser.sources) {
-      // Avoid modifying the standard library
+      // Avoid modifying the standard library which is under ~lib/
       if (!source.internalPath.startsWith("~lib/")) {
         visit(source);
       }
